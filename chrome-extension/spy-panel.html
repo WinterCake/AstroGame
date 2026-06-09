@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Espionnage — Astrogame Assistant</title>
+    <link rel="stylesheet" href="spy-panel.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>Rapports d'espionnage</h1>
+        <p id="panelMeta">Chargement…</p>
+      </div>
+      <div class="topbar-actions">
+        <label class="field">
+          <span>Filtre</span>
+          <select id="panelFilter">
+            <option value="all">Tous</option>
+            <option value="sans-defense">Sans défense</option>
+            <option value="gros-butin-sans-defense">Gros butin · sans défense</option>
+            <option value="gros-butin">Gros butin</option>
+            <option value="today">Aujourd'hui</option>
+            <option value="today-sans-defense">Sans défense du jour</option>
+            <option value="today-gros-sans-defense">Gros butin · sans défense (jour)</option>
+            <option value="today-gros">Gros butin du jour</option>
+          </select>
+        </label>
+        <button type="button" id="panelRefresh" class="primary">Charger</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="list-pane">
+        <table class="spy-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th data-sort="date" data-label="Date">Date</th>
+              <th data-sort="coords" data-label="Coords">Coords</th>
+              <th data-sort="status" data-label="Statut">Statut</th>
+              <th data-sort="username" data-label="Joueur">Joueur</th>
+              <th data-sort="planet" data-label="Planète">Planète</th>
+              <th data-sort="loot" data-label="Butin">Butin</th>
+              <th data-sort="fleet" data-label="Flotte">Flotte</th>
+              <th data-sort="defense" data-label="Déf.">Déf.</th>
+              <th data-sort="verdict" data-label="Verdict">Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="panelTableBody"></tbody>
+        </table>
+      </section>
+
+      <aside class="detail-pane" id="detailPane">
+        <p class="detail-empty">Clique <strong>Détail</strong> sur une ligne pour voir le rapport (sans les zéros).</p>
+      </aside>
+    </div>
+
+    <p class="status" id="panelStatus"></p>
+    <pre class="debug-log" id="debugLog" hidden></pre>
+
+    <script src="attacks.js"></script>
+    <script src="spy-labels.js"></script>
+    <script src="spy-parse.js"></script>
+    <script src="spy-table-sort.js"></script>
+    <script src="spy-detail.js"></script>
+    <script src="spy-panel.js"></script>
+  </body>
+</html>

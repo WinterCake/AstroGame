@@ -1,0 +1,275 @@
+var socketDisabled = socketActionDisabled || false;
+
+if (loggedIn && !socketDisabled) {
+  var generalWarSpyCountUpdater = new Date();
+  var spyCount = 0;
+  var warCount = 0;
+  var intervalStatus = null;
+  var idleInterval = null;
+  var idleTime = 0;
+  var idleAlarmDisable = 60 * 15;
+
+  $(function () {
+    initIdle();
+    initSocketActions();
+    onReadySetRadar();
+  });
+
+  function initIdle() {
+    if (idleInterval != null) {
+      idleTime = 0;
+      clearInterval(idleInterval);
+    }
+
+    idleInterval = setInterval(function () {
+      idleTime++;
+
+      if (idleInterval != null && idleTime > idleAlarmDisable) {
+        clearInterval(idleInterval);
+      }
+    }, 1000);
+  }
+
+  function initSocketActions() {
+    if (intervalStatus != null) {
+      clearInterval(intervalStatus);
+    }
+
+    intervalStatus = setInterval(function () {
+      var $last = Math.round(generalWarSpyCountUpdater.getTime() / 1000);
+      var $current = Math.round(new Date().getTime() / 1000);
+      var timeDiff = $current - $last;
+
+      if (timeDiff >= 25) {
+        /* */
+      }
+
+      if (idleTime < idleAlarmDisable) {
+        $("#generalIdle:not(.d-none)").addClass("d-none");
+
+        if ($("#generalHeader .infobox:not(.idle)").length == 0) {
+          $("#generalHeader").removeClass("infox");
+        }
+      } else {
+        $("#generalHeader:not(.infox)").addClass("infox");
+        $("#generalIdle").removeClass("d-none");
+      }
+    }, 5000);
+
+    /*
+		var fleetInterval								= null;
+
+		function overviewFleetsMobile(reset)
+		{
+			if (reset)
+			{
+				clearInterval(fleetInterval);
+				fleetInterval							= null;
+			}
+
+			fleetInterval								= setInterval(function ()
+			{
+				$('.fleetsMobile').each(function()
+				{
+					var s								= $(this).data('fleet-time') - ((serverTime.getTime() - startTime) / 1000);
+					var fIndex							= $(this).data('fleet-index');
+
+					if (s <= 0)
+					{
+						$(this).text('-');
+						$('#fleetrowMobile_' + fIndex).remove();
+
+						if ($('.fleetsMobile').length <= 0)
+						{
+							$('#mobileFleetEvents').html('Herhangi bir filo hareketi yok.');
+							$('#mobileFleetEventsDetails').html('');
+							$('#mobileFleetEventsArrow').removeClass('active');
+							$('#mobileFleetEventsDetails').hide();
+						}
+					}
+					else
+					{
+						$(this).text(GetRestTimeFormat(s)+' \n'+timeConverter($(this).data('fleet-end-time')));
+					}
+				});
+			}, 1000);
+		}
+		*/
+
+    SysSocket.readyCheck(function () {
+      // Userdata
+      var userdataKey = "userdata:" + loggedInId;
+      SysSocket.subscribe(userdataKey);
+      SysSocket.setQueue(userdataKey);
+      SysSocket.on(userdataKey, function (data) {
+        if (data.type == "messages") {
+          if (data.value > 0) {
+            if ($("#newmes").length > 0) {
+              $("#newmesnum").html(NumberGetHumanReadable(data.value));
+              $("#newmes").show();
+              // rampage
+              $("#badgeMsgOther").html(NumberGetHumanReadable(data.value));
+              $("#badgeMsgOther").addClass("show");
+            }
+
+            if ($("#messagesBar").length > 0) {
+              $("#messagesBarDetail").html(data.text);
+              $("#messagesBar").show();
+            }
+
+            if ($("#mobileMessages").length > 0) {
+              $("#mobileMessages").show();
+            }
+
+            if ($("#image_messages").length > 0) {
+              $("#image_messages").attr("id", "image_have_messages");
+            }
+
+            generalChecker();
+          }
+        }
+
+        if (data.type == "notifications") {
+          $("#notifications")
+            .html("( " + NumberGetHumanReadable(data.value) + " )")
+            .removeClass("have_notification")
+            .addClass("have_notification");
+          soundMapping.playNotification();
+          generalChecker();
+        }
+      });
+
+      var lastFleetUpdate = new Date();
+
+      var fleetsKey = "fleets:" + loggedInId;
+      SysSocket.subscribe(fleetsKey);
+      SysSocket.setQueue(fleetsKey);
+      SysSocket.on(fleetsKey, function (fleets) {
+        lastFleetUpdate = new Date();
+
+        var thisTimestamp = new Date().getTime().toString();
+        localStorage.setItem("lud:" + loggedInUId, thisTimestamp);
+
+        if (Object.keys(fleets).length > 0) {
+          warCount = 0;
+          spyCount = 0;
+
+          for (var fleetIndex in helperSortAsc(fleets)) {
+            var fleet = fleets[fleetIndex];
+
+            // Eğer saldırıyı başlatan kullanıcı değilse (owner yoksa)
+            if (!fleet["owner"]) {
+              // Eğer aktiflik bilgisi varsa ve saldırı inaktif ise bu kaydı atlıyoruz
+              if (fleet.hasOwnProperty("active") && !fleet["active"]) {
+                continue;
+              }
+              // Görev tiplerine göre sayım yapıyoruz
+              if (
+                (fleet["missionType"] == 1 || fleet["missionType"] == 2 || fleet["missionType"] == 9 || fleet["missionType"] == 10) &&
+                fleet["fleetMess"] == 0
+              ) {
+                warCount++;
+              } else if (fleet["missionType"] == 6 && fleet["fleetMess"] == 0) {
+                spyCount++;
+              }
+            }
+          }
+
+          // LocalStorage'da mevcut radar durumunu kontrol ediyoruz
+          var storedRadar = localStorage.getItem("u" + loggedInUId + ":radar");
+
+          // Hesaplamalara göre radar durumunu güncelliyoruz
+          if (warCount > 0 && idleTime < idleAlarmDisable) {
+            updateRadarStatus("red", loggedInUId);
+            generalWarSpyCountUpdater = new Date();
+          } else if (spyCount > 0 && idleTime < idleAlarmDisable) {
+            updateRadarStatus("orange", loggedInUId);
+            generalWarSpyCountUpdater = new Date();
+          } else {
+            updateRadarStatus("green", loggedInUId);
+            generalWarSpyCountUpdater = new Date();
+          }
+        } else {
+          $(".fleetRows").remove();
+          $("#mobileFleetEvents").html("Herhangi bir filo hareketi yok.");
+          $("#mobileFleetEventsDetails").html("");
+          updateRadarStatus("green", loggedInUId);
+        }
+      });
+
+      setInterval(function () {
+        var now = new Date();
+        var isStale = now - lastFleetUpdate > 30000;
+
+        if (isStale) {
+          // Gelen veri yoksa kırmızı/ turuncu durumları çakılı kalmasın
+          warCount = 0;
+          spyCount = 0;
+          updateRadarStatus("green", loggedInUId);
+          return;
+        }
+
+        if (warCount === 0 && spyCount === 0) {
+          updateRadarStatus("green", loggedInUId);
+        }
+      }, 10000); // 10 saniyede bir kontrol et
+
+      var globalOnlineUserCounts = 0;
+      var onlineKey = "uni" + loggedInUId + ":online";
+      SysSocket.subscribe(onlineKey);
+      SysSocket.setQueue(onlineKey);
+      SysSocket.on(onlineKey, function (data) {
+        if (globalOnlineUserCounts == data.online) {
+          $("#onlineUsersCount").html(NumberGetHumanReadable(data.online));
+        } else if (globalOnlineUserCounts < data.online) {
+          $("#onlineUsersCount").html('<span style="color:green">' + NumberGetHumanReadable(data.online) + "</span>");
+        } else if (globalOnlineUserCounts > data.online) {
+          $("#onlineUsersCount").html('<span style="color:red">' + NumberGetHumanReadable(data.online) + "</span>");
+        }
+
+        globalOnlineUserCounts = data.online;
+      });
+    });
+  }
+}
+
+function updateRadarStatus(status, uni) {
+  // TEMPLATE: GAME
+  const thisAlarm = $("#alarm_" + uni);
+  const thisAlarmMobile = $("#alarmMobile_" + uni);
+
+  if (thisAlarm) {
+    thisAlarm.attr("src", baseUrl + "styles/resource/images/" + status + ".gif");
+    if (status == "red" || status == "orange") {
+      if (thisAlarmMobile) thisAlarmMobile.css("display", "block");
+    } else {
+      if (thisAlarmMobile) thisAlarmMobile.css("display", "none");
+    }
+  }
+
+  // TEMPLATE: RAMPAGE
+  const rampageAlarm = $("#rampageAlarm_" + uni);
+  const rampageAlarmMobile = $("#rampageAlarmMobile_" + uni);
+
+  if (rampageAlarm) {
+    rampageAlarm.attr("data-status", status);
+  }
+  if (rampageAlarmMobile) {
+    rampageAlarmMobile.attr("data-status", status);
+  }
+
+  localStorage.setItem("u" + uni + ":radar", status);
+}
+
+function onReadySetRadar() {
+  const uniIdRadar = "u" + loggedInUId + ":radar";
+  const radarStatus = localStorage.getItem(uniIdRadar);
+
+  if (radarStatus === null || radarStatus === undefined) {
+    updateRadarStatus("green", loggedInUId);
+  }
+
+  if (radarStatus) {
+    updateRadarStatus(radarStatus, loggedInUId);
+  }
+}

@@ -1,0 +1,207 @@
+const SysSocket = {
+  socket: null,
+  connecting: false,
+  ready: false,
+  token: null,
+  queues: {},
+  callbacks: {},
+  subscribes: {},
+  debug: true,
+  codec: NATS.JSONCodec(),
+
+  reconnectConfig: {
+    enabled: true,
+    timeWait: 5000,
+    maxAttempts: 100,
+  },
+
+  /**
+   * Ana bağlantı fonksiyonu
+   */
+  async connect(routesInit = false) {
+    if (SysSocket.socket || SysSocket.connecting) {
+      // SysSocket.debug && console.warn("[SysSocket] Already connected or connecting...");
+      return false;
+    }
+
+    SysSocket.connecting = true;
+
+    try {
+      const conn = await NATS.connect({
+        encoding: "utf8",
+        reconnect: SysSocket.reconnectConfig.enabled,
+        maxReconnectAttempts: SysSocket.reconnectConfig.maxAttempts,
+        reconnectTimeWait: SysSocket.reconnectConfig.timeWait,
+        servers: socketServers,
+        user: "dynamicUser",
+        pass: SysSocket.token,
+        json: true,
+        ignoreServerUpdates: true,
+      });
+
+      SysSocket.socket = conn;
+      SysSocket.ready = true;
+      SysSocket.connecting = false;
+      SysSocket.dispatch("connect", conn.getServer());
+      // SysSocket.debug && console.log("✅ Connected:", conn.getServer());
+
+      // Tek seferlik route başlat
+      if (routesInit) SysSocket.routesClient();
+
+      // Status listener
+      (async () => {
+        for await (const s of conn.status()) {
+          switch (s.type) {
+            case "disconnect":
+              SysSocket.ready = false;
+              SysSocket.dispatch("disconnect", conn.getServer());
+              // SysSocket.debug && console.log("⚠️ Disconnected:", conn.getServer());
+              break;
+            case "reconnecting":
+              SysSocket.ready = false;
+              SysSocket.dispatch("reconnecting", conn.getServer());
+              // SysSocket.debug && console.log("🔄 Reconnecting...");
+              break;
+            case "reconnect":
+              SysSocket.ready = true;
+              SysSocket.dispatch("reconnect", conn.getServer());
+              // SysSocket.debug && console.log("♻️ Reconnected:", conn.getServer());
+              SysSocket.routesClient();
+              break;
+          }
+        }
+      })();
+
+      // Closed listener
+      conn.closed().then((err) => {
+        const server = conn.getServer();
+        SysSocket.ready = false;
+        SysSocket.socket = null;
+        SysSocket.connecting = false;
+        SysSocket.dispatch("close", server);
+        if (err) SysSocket.dispatch("error", err.message);
+        // SysSocket.debug && console.log("❌ Connection closed", err?.message);
+      });
+      return true;
+    } catch (err) {
+      SysSocket.dispatch("error", err?.message || "Unknown connection error");
+      // SysSocket.debug && console.error("🚫 Connection failed:", err);
+      return false;
+    } finally {
+      SysSocket.connecting = false;
+    }
+  },
+
+  /**
+   * Sistem route kontrolü
+   */
+  async routesClient() {
+    if (!SysSocket.socket || !SysSocket.ready) return;
+    // SysSocket.debug && console.log("[RoutesClient] Initialized");
+
+    for (const q of Object.keys(SysSocket.queues)) {
+      try {
+        const res = await SysSocket.socket.request("request", SysSocket.codec.encode({ type: q }), { noMux: true, timeout: 8000 });
+        SysSocket.dispatch(q, SysSocket.codec.decode(res.data));
+        // SysSocket.debug && console.log("📨 Request ok:", q);
+      } catch (err) {
+        SysSocket.dispatch("error", `Problem with request: ${err.message}`);
+        // SysSocket.debug && console.warn("⚠️ Request failed:", q, err.message);
+      }
+    }
+  },
+
+  /**
+   * Hazır olup olmadığını kontrol et
+   */
+  readyCheck(callback) {
+    if (SysSocket.ready) return callback();
+    const interval = setInterval(() => {
+      if (SysSocket.ready) {
+        clearInterval(interval);
+        callback();
+      }
+    }, 500);
+  },
+
+  setToken(token) {
+    SysSocket.token = token;
+  },
+
+  setQueue(name) {
+    SysSocket.queues[name] = name;
+  },
+
+  unsetQueue(name) {
+    delete SysSocket.queues[name];
+  },
+
+  hasQueue(name) {
+    return !!SysSocket.queues[name];
+  },
+
+  /**
+   * Event Listener
+   */
+  on(event, fn) {
+    (SysSocket.callbacks[event] ||= []).push(fn);
+  },
+
+  /**
+   * Dispatch (event tetikleme)
+   */
+  dispatch(event, data) {
+    const cbs = SysSocket.callbacks[event];
+    if (cbs) cbs.forEach((cb) => cb(data));
+  },
+
+  /**
+   * Abonelik kontrolü
+   */
+  hasSubscribe(subject) {
+    return !!SysSocket.subscribes[btoa(subject)];
+  },
+
+  /**
+   * Abonelik iptali
+   */
+  unSubscribe(subject) {
+    const key = btoa(subject);
+    const sub = SysSocket.subscribes[key];
+    if (sub) {
+      try {
+        sub.drain();
+      } catch {
+        // SysSocket.debug && console.log("🔕 Drain failed (connection closed):", subject);
+      }
+      delete SysSocket.subscribes[key];
+      delete SysSocket.callbacks[subject];
+    }
+  },
+
+  /**
+   * Abone ol
+   */
+  async subscribe(subject) {
+    if (!SysSocket.ready || SysSocket.hasSubscribe(subject)) return;
+    const key = btoa(subject);
+
+    try {
+      SysSocket.subscribes[key] = await SysSocket.socket.subscribe(subject, {
+        callback: (err, msg) => {
+          if (err) {
+            SysSocket.dispatch("error", "Subscribe error: " + err.message);
+          } else {
+            const data = SysSocket.codec.decode(msg.data);
+            SysSocket.dispatch(subject, data);
+            // SysSocket.debug && console.log("📡 Message:", subject, data);
+          }
+        },
+      });
+
+      // SysSocket.debug && console.log("✅ Subscribed to:", subject);
+    } catch (err) {
+      SysSocket.dispatch("error", "Subscribe failed: " + err.message);
+    }
+  },
+};

@@ -1,0 +1,427 @@
+.topnav_menu {
+  list-style: none;
+  background: #000;
+  width: 70%;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 10px;
+}
+
+.topnav_menu li {
+  display: inline-block;
+}
+
+.topnav_menu li:before {
+  content: "|";
+  width: 5px;
+  padding: 0 5px;
+  margin: 0;
+}
+
+.topnav_menu li:first-child:before {
+  content: "";
+  width: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.bottom_menu {
+  list-style: none;
+  background: #000;
+  width: 65%;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 6px;
+}
+
+.bottom_menu li {
+  display: inline-block;
+}
+
+.bottom_menu li:before {
+  content: "|";
+  width: 5px;
+  padding: 0 5px;
+  margin: 0;
+}
+
+.bottom_menu li:first-child:before {
+  content: "";
+  width: 0;
+  padding: 0;
+  margin: 0;
+}
+
+/*
+#planetselect {float: left;width: 215px;}
+#planetselect select {float: left;height: 16px;margin: 17px 10px;width: 145px;}
+#planetselect input {width: 20px;float:left;position:relative;margin-top:17px;}
+*/
+#resourcesdiv {
+  padding: 5px 0 0;
+  margin: 0 auto;
+  height: 70px;
+  text-align: center;
+}
+
+#resourcestable {
+  width: 700px;
+  margin: 0 auto;
+  padding: 0;
+  list-style: none;
+}
+
+.resourceinfo {
+  margin: 0 5px;
+  padding: 0;
+  float: left;
+  width: 130px;
+}
+
+#resourcesdiv p {
+  margin: 0;
+}
+
+/*
+#header {
+    padding: 0px 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    min-width: 915px;
+    overflow: hidden;
+}
+*/
+
+/*
+body:not(.popup) #content {
+    margin: 10px 10px 0;
+    padding: 10px 10px 50px 10px;
+}
+
+
+body.popup #content
+{
+	min-width: 0;
+}
+
+body:not(.popup) {}
+*/
+
+.instant {
+  font-weight: bold;
+  color: white;
+  background-color: green !important;
+}
+
+.instant:hover {
+  font-weight: bold;
+  color: black !important;
+  background-color: #40b540 !important;
+}
+
+.d-none {
+  display: none;
+}
+
+.blink_text {
+  color: #62c8f2;
+  animation-name: blinker;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+}
+
+@-webkit-keyframes blinker {
+
+  100%,
+  50%,
+  from {
+    opacity: 1;
+  }
+
+  25%,
+  75% {
+    opacity: 0;
+  }
+}
+
+@keyframes blinker {
+
+  100%,
+  50%,
+  from {
+    opacity: 1;
+  }
+
+  25%,
+  75% {
+    opacity: 0;
+  }
+}
+
+.button5 {
+  display: inline-block;
+  box-sizing: border-box;
+  padding: 1px;
+  border: none;
+  font: normal 25px / normal "Warnes", Helvetica, sans-serif;
+  color: lime;
+  text-decoration: none;
+  text-align: center;
+  text-overflow: clip;
+  white-space: pre;
+  /* text-shadow: 0 0 10px rgba(255,255,255,1) , 0 0 20px rgba(255,255,255,1) , 0 0 30px rgba(255,255,255,1) , 0 0 40px #ff00de , 0 0 70px #ff00de , 0 0 80px #ff00de , 0 0 100px #ff00de; */
+}
+
+.button5:hover {
+  color: red;
+  /* text-shadow: 0 0 10px rgba(255,255,255,1) , 0 0 20px rgba(255,255,255,1) , 0 0 30px rgba(255,255,255,1) , 0 0 40px #058FFC , 0 0 70px #058FFC , 0 0 80px #058FFC , 0 0 100px #058FFC; */
+}
+
+.loteeryInputNumber {
+  width: 30px;
+}
+
+.lotteryPage input {
+  border: 1px solid #212121;
+  text-align: center;
+}
+
+.lotteryPage input,
+.lotteryPage select,
+.lotteryPage option,
+.lotteryPage textarea {
+  background: #393939;
+}
+
+.text_grey {
+  color: grey;
+}
+
+.text_bold {
+  font-weight: bold;
+}
+
+.button1 {
+  border: 3px solid #0a3c59;
+  background: #3e779d;
+  background: -webkit-gradient(linear, left top, left bottom, from(#65a9d7), to(#3e779d));
+  background: -webkit-linear-gradient(top, #65a9d7, #3e779d);
+  background: -moz-linear-gradient(top, #65a9d7, #3e779d);
+  background: -ms-linear-gradient(top, #65a9d7, #3e779d);
+  background: -o-linear-gradient(top, #65a9d7, #3e779d);
+  background-image: -ms-linear-gradient(top, #65a9d7 0%, #3e779d 100%);
+  padding: 10.5px 21px;
+  -webkit-border-radius: 19px;
+  -moz-border-radius: 19px;
+  border-radius: 19px;
+  -webkit-box-shadow: rgba(255, 255, 255, 0.4) 0 1px 0, inset rgba(255, 255, 255, 0.4) 0 1px 0;
+  -moz-box-shadow: rgba(255, 255, 255, 0.4) 0 1px 0, inset rgba(255, 255, 255, 0.4) 0 1px 0;
+  box-shadow: rgba(255, 255, 255, 0.4) 0 1px 0, inset rgba(255, 255, 255, 0.4) 0 1px 0;
+  text-shadow: #7ea4bd 0 1px 0;
+  color: #ffffff;
+  font-size: 16px;
+  font-family: helvetica, serif;
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.button1:hover {
+  border: 3px solid #0a3c59;
+  text-shadow: #1e4158 0 1px 0;
+  background: #3e779d;
+  background: -webkit-gradient(linear, left top, left bottom, from(#65a9d7), to(#3e779d));
+  background: -webkit-linear-gradient(top, #65a9d7, #3e779d);
+  background: -moz-linear-gradient(top, #65a9d7, #3e779d);
+  background: -ms-linear-gradient(top, #65a9d7, #3e779d);
+  background: -o-linear-gradient(top, #65a9d7, #3e779d);
+  background-image: -ms-linear-gradient(top, #65a9d7 0%, #3e779d 100%);
+  color: #fff;
+}
+
+.button1:active {
+  text-shadow: #1e4158 0 1px 0;
+  border: 3px solid #0a3c59;
+  background: #65a9d7;
+  background: -webkit-gradient(linear, left top, left bottom, from(#3e779d), to(#3e779d));
+  background: -webkit-linear-gradient(top, #3e779d, #65a9d7);
+  background: -moz-linear-gradient(top, #3e779d, #65a9d7);
+  background: -ms-linear-gradient(top, #3e779d, #65a9d7);
+  background: -o-linear-gradient(top, #3e779d, #65a9d7);
+  background-image: -ms-linear-gradient(top, #3e779d 0%, #65a9d7 100%);
+  color: #fff;
+}
+
+.ui-dialog .ui-dialog-content {
+  padding: 0.5em 0 !important;
+}
+
+.dm_revenue td,
+.dm_revenue {
+  color: lime !important;
+}
+
+.dm_expense td,
+.dm_expense {
+  color: red !important;
+}
+
+.no-close .ui-dialog-titlebar-close {
+  display: none !important;
+}
+
+.have_notification {
+  font-weight: 700;
+  color: red;
+}
+
+.unread_notification td {
+  font-weight: 700;
+}
+
+.ui-dialog .ui-dialog-buttonpane {
+  margin-top: 0;
+  padding: 0.3em 1em 0.3em 0.4em;
+}
+
+.tooltipster-sidetip .tooltipster-box {
+  background: rgb(53, 69, 102);
+  border: 1px solid rgb(73, 91, 128);
+  border-radius: unset;
+}
+
+.tooltipster-sidetip.tooltipster-bottom .tooltipster-arrow-border {
+  border-bottom-color: rgb(73, 91, 128);
+}
+
+.tooltipster-sidetip.tooltipster-bottom .tooltipster-arrow-background {
+  border-bottom-color: rgb(53, 69, 102);
+  top: 2px;
+}
+
+.tooltipster-sidetip.tooltipster-top .tooltipster-arrow-border {
+  border-top-color: rgb(73, 91, 128);
+}
+
+.tooltipster-sidetip.tooltipster-top .tooltipster-arrow-background {
+  border-top-color: rgb(53, 69, 102);
+  top: -2px;
+}
+
+.tooltipster-sidetip .tooltipster-content {
+  padding: 5px;
+}
+
+.tooltipster-sidetip.tooltipster-top .tooltipster-arrow {
+  bottom: -2px;
+  height: 11px;
+}
+
+.tooltipster-sidetip.tooltipster-bottom .tooltipster-arrow {
+  top: -2px;
+  height: 11px;
+}
+
+.tooltipster-sidetip .tooltipster-box {
+  width: 100%;
+  word-wrap: break-word;
+  height: fit-content;
+}
+
+.tooltipster-base {
+  max-width: 500px;
+}
+
+select option:checked {
+  background-color: light-dark(rgb(206, 206, 206), rgb(84, 84, 84)) !important;
+  color: light-dark(rgb(16, 16, 16), rgb(255, 255, 255)) !important;
+}
+
+/* flatpickr */
+
+.flatpickr-calendar {
+  width: 100px !important;
+  font-size: 12px !important;
+}
+
+.flatpickr-day {
+  width: 28px !important;
+  height: 28px !important;
+  line-height: 28px !important;
+  font-size: 12px !important;
+}
+
+.flatpickr-time {
+  max-height: 24px !important;
+  line-height: 24px !important;
+}
+
+.flatpickr-time .numInputWrapper {
+  width: 30% !important;
+  height: 24px !important;
+}
+
+/* flatpickr */
+
+.flatpickr-time input {
+  font-size: 12px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  padding: 0 !important;
+}
+
+.flatpickr-months .flatpickr-month {
+  height: 30px !important;
+  font-size: 13px !important;
+}
+
+.flatpickr-current-month {
+  font-size: 13px !important;
+}
+
+.dayContainer {
+  padding: 0 !important;
+}
+
+.flatpickr-innerContainer {
+  padding: 0 !important;
+}
+
+.flatpickr-calendar {
+  padding: 0 !important;
+  border-radius: 4px !important;
+}
+
+@media (max-width: 768px) {
+
+  /* flatpickr */
+  .flatpickr-calendar {
+    width: 30% !important;
+    font-size: 12px !important;
+  }
+
+  .flatpickr-time {
+    max-height: 20px !important;
+    line-height: 20px !important;
+  }
+
+  .flatpickr-time .numInputWrapper {
+    width: 30% !important;
+    height: 20px !important;
+  }
+
+  .flatpickr-time input {
+    font-size: 12px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+    padding: 0 !important;
+  }
+
+  .flatpickr-months .flatpickr-month {
+    height: 20px !important;
+    font-size: 12px !important;
+  }
+}

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Astrogame Assistant</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Astrogame Assistant</h1>
+      <p class="version">v1.4.3</p>
+    </header>
+
+    <nav class="tabs">
+      <button type="button" class="tab active" data-tab="galaxy">Galaxie</button>
+      <button type="button" class="tab" data-tab="spy">Espionnage</button>
+    </nav>
+
+    <section id="panel-galaxy" class="panel active">
+      <p class="intro">Navigue sur la galaxie, l’extension capture chaque système affiché.</p>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="label">Systèmes</span>
+          <span class="value" id="systems">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">Planètes</span>
+          <span class="value" id="planets">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">Joueurs</span>
+          <span class="value" id="players">0</span>
+        </div>
+        <div class="stat highlight">
+          <span class="label">Inactifs</span>
+          <span class="value" id="inactive">0</span>
+        </div>
+      </div>
+
+      <p class="last" id="last">Dernier scan : —</p>
+
+      <label class="toggle">
+        <input type="checkbox" id="capture" checked />
+        <span>Capture galaxie active</span>
+      </label>
+
+      <label class="toggle">
+        <input type="checkbox" id="inactiveOnly" />
+        <span>Exporter uniquement les inactifs (hors vacances)</span>
+      </label>
+
+      <div class="actions">
+        <button type="button" id="export" class="primary">Exporter JSON</button>
+        <button type="button" id="clear" class="danger">Effacer</button>
+      </div>
+
+      <p class="hint">Ouvre la galaxie et change de système avec les flèches.</p>
+    </section>
+
+    <section id="panel-spy" class="panel">
+      <p class="intro">Rapports en cache local (Chrome). Supprimer les messages en jeu ne les efface pas ici — sauf si tu cliques « Effacer ».</p>
+
+      <div class="stats spy-stats">
+        <div class="stat">
+          <span class="label">Rapports</span>
+          <span class="value" id="spyTotal">0</span>
+        </div>
+        <div class="stat highlight">
+          <span class="label">Gros butin</span>
+          <span class="value" id="spyGros">0</span>
+        </div>
+        <div class="stat highlight-alt">
+          <span class="label">Sans défense</span>
+          <span class="value" id="spySansDefense">0</span>
+        </div>
+        <div class="stat">
+          <span class="label">Cibles</span>
+          <span class="value" id="spyCibles">0</span>
+        </div>
+      </div>
+
+      <p class="last" id="spyLast">Dernier chargement : —</p>
+
+      <div class="spy-toolbar">
+        <label class="field">
+          <span>Filtre</span>
+          <select id="spyFilter">
+            <option value="all">Tous</option>
+            <option value="sans-defense">Sans défense</option>
+            <option value="gros-butin-sans-defense">Gros butin · sans défense</option>
+            <option value="gros-butin">Gros butin</option>
+            <option value="today">Aujourd’hui</option>
+            <option value="today-sans-defense">Sans défense du jour</option>
+            <option value="today-gros-sans-defense">Gros butin · sans défense (jour)</option>
+            <option value="today-gros">Gros butin du jour</option>
+          </select>
+        </label>
+        <label class="toggle compact">
+          <input type="checkbox" id="spyCapture" checked />
+          <span>Capture auto (messages)</span>
+        </label>
+      </div>
+
+      <div class="spy-table-wrap">
+        <table class="spy-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th data-sort="date" data-label="Date">Date</th>
+              <th data-sort="coords" data-label="Coords">Coords</th>
+              <th data-sort="status" data-label="Statut">Statut</th>
+              <th data-sort="username" data-label="Joueur">Joueur</th>
+              <th data-sort="loot" data-label="Butin">Butin</th>
+              <th data-sort="fleet" data-label="Flotte">Flotte</th>
+              <th data-sort="defense" data-label="Déf.">Déf.</th>
+              <th data-sort="verdict" data-label="Verdict">Verdict</th>
+            </tr>
+          </thead>
+          <tbody id="spyTableBody">
+            <tr class="empty">
+              <td colspan="9">Clique « Charger » pour récupérer tes rapports.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div id="spyDetailBox" class="spy-detail-box" hidden></div>
+
+      <p class="status" id="spyStatus"></p>
+
+      <div class="actions spy-actions">
+        <button type="button" id="spyRefresh" class="primary">Charger</button>
+        <button type="button" id="spyOpenPanel">Panneau</button>
+        <button type="button" id="spyExport">JSON</button>
+        <button type="button" id="spyExportAttacks" title="Historique permanent des attaques">Attaques</button>
+        <button type="button" id="spyClear" class="danger">Effacer</button>
+      </div>
+
+      <p class="hint">Connecté sur Astrogame dans un onglet Chrome. Si Charger échoue : F5 sur l'onglet jeu puis réessaie.</p>
+    </section>
+
+    <script src="attacks.js"></script>
+    <script src="spy-labels.js"></script>
+    <script src="spy-parse.js"></script>
+    <script src="spy-table-sort.js"></script>
+    <script src="spy-detail.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,405 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  width: 320px;
+  margin: 0;
+  padding: 16px;
+  font-family: Montserrat, Arial, sans-serif;
+  background: #0b1220;
+  color: #d8e8f8;
+}
+
+body.spy-mode {
+  width: 560px;
+}
+
+body.spy-detail-open {
+  width: 560px;
+}
+
+.spy-detail-box {
+  margin-bottom: 10px;
+  max-height: 260px;
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid #1f3350;
+  border-radius: 8px;
+  background: #0d1524;
+  font-size: 11px;
+}
+
+.spy-detail-box .detail-header h2 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #f4fbff;
+}
+
+.spy-detail-box .detail-sections {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.spy-detail-box .detail-section-head {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.spy-detail-box .detail-section h3 {
+  margin: 0;
+  font-size: 11px;
+  color: #8fd3ff;
+}
+
+.spy-detail-box .detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #1a2740;
+  border-radius: 6px;
+}
+
+.spy-detail-box .detail-list li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-top: 1px solid #1a2740;
+  font-size: 11px;
+}
+
+.spy-detail-box .detail-list li:first-child {
+  border-top: none;
+}
+
+.spy-table tr.selected td {
+  background: rgba(47, 143, 217, 0.16);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 16px;
+  color: #8fd3ff;
+}
+
+header .version {
+  margin: 2px 0 12px;
+  font-size: 11px;
+  color: #5f7a96;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.tab {
+  border: 1px solid #1f3350;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #121c2e;
+  color: #9eb4cb;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tab.active {
+  background: linear-gradient(180deg, #2f8fd9, #1a6fb5);
+  border-color: #3d8fd4;
+  color: white;
+}
+
+.panel {
+  display: none;
+}
+
+.panel.active {
+  display: block;
+}
+
+.intro {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #8fa4bc;
+  line-height: 1.4;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.spy-stats {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.stat {
+  background: #121c2e;
+  border: 1px solid #1f3350;
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.stat .label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #7f95ad;
+}
+
+.stat .value {
+  display: block;
+  margin-top: 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #f4fbff;
+}
+
+.stat.highlight {
+  border-color: #3d6e4a;
+  background: #13261a;
+}
+
+.stat.highlight .value {
+  color: #8dffb0;
+}
+
+.stat.highlight-alt {
+  border-color: #3d5e6e;
+  background: #122430;
+}
+
+.stat.highlight-alt .value {
+  color: #8fd3ff;
+}
+
+.last {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: #9eb4cb;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.toggle.compact {
+  margin-bottom: 0;
+  font-size: 11px;
+}
+
+.spy-toolbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: #8fa4bc;
+}
+
+.field select {
+  border: 1px solid #1f3350;
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #121c2e;
+  color: #d8e8f8;
+  font: inherit;
+  font-size: 12px;
+}
+
+.spy-table-wrap {
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid #1f3350;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #0d1524;
+}
+
+.spy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.spy-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.spy-table th {
+  padding: 8px 6px;
+  text-align: left;
+  background: #1a4d7a;
+  color: white;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.spy-table th[data-sort] {
+  cursor: pointer;
+  user-select: none;
+}
+
+.spy-table th[data-sort]:hover {
+  background: #23639c;
+}
+
+.spy-table th.sort-active {
+  color: #8fd3ff;
+}
+
+.spy-table td {
+  padding: 7px 6px;
+  border-top: 1px solid #1a2740;
+  vertical-align: top;
+}
+
+.spy-table tr:hover td {
+  background: rgba(47, 143, 217, 0.08);
+}
+
+.spy-table td.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.spy-table tr.empty td {
+  text-align: center;
+  color: #6f849c;
+  padding: 20px;
+}
+
+.verdict-loot {
+  color: #8dffb0;
+  font-weight: 600;
+}
+
+.verdict-target {
+  color: #8fd3ff;
+}
+
+.verdict-fleet {
+  color: #ffb08f;
+}
+
+.verdict-heavy {
+  color: #ff9f9f;
+}
+
+.verdict-light {
+  color: #d4b08f;
+}
+
+.verdict-muted {
+  color: #8fa4bc;
+}
+
+.status {
+  min-height: 16px;
+  margin: 0 0 8px;
+  font-size: 11px;
+  color: #8fd3ff;
+  white-space: pre-wrap;
+}
+
+.status.error {
+  color: #ff8f9d;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.spy-actions {
+  grid-template-columns: 1fr 0.8fr 0.7fr auto;
+}
+
+button.detail-btn {
+  padding: 2px 7px;
+  font-size: 11px;
+  background: #1a2e44;
+  color: #8fd3ff;
+  border: 1px solid #2a4d6e;
+}
+
+.attack-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffb08f;
+  background: rgba(255, 120, 80, 0.15);
+  border: 1px solid rgba(255, 120, 80, 0.35);
+  white-space: nowrap;
+}
+
+.spy-table tr.row-attacked td {
+  background: rgba(255, 120, 80, 0.06);
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+button.primary {
+  background: linear-gradient(180deg, #2f8fd9, #1a6fb5);
+  color: white;
+}
+
+button.danger {
+  background: #2a1a22;
+  color: #ff8f9d;
+  border: 1px solid #5a2a36;
+}
+
+#spyExport {
+  background: #121c2e;
+  color: #d8e8f8;
+  border: 1px solid #1f3350;
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #6f849c;
+}

@@ -1,0 +1,14 @@
+node_modules/
+.env
+.astrogame-session
+galaxy*.json
+global-galaxy.json
+spy-reports.json
+spy-reports.xlsx
+galaxy-merged.xlsx
+global-galaxy.xlsx
+attacks-today.json
+attacks-today.txt
+global-galaxy-new.xlsx
+~$*.xlsx
+*.log

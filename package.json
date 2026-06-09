@@ -1,0 +1,26 @@
+{
+  "name": "astrogame-api",
+  "version": "0.1.0",
+  "description": "Client Node pour automatiser les actions Astrogame (uni24)",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "login": "node src/index.js login",
+    "buildings": "node src/index.js buildings",
+    "plan": "node src/index.js plan",
+    "upgrade-next": "node src/index.js upgrade-next",
+    "upgrade": "node src/index.js upgrade",
+    "parse-local": "node src/index.js parse-local",
+    "galaxy-scrape": "node src/index.js galaxy-scrape",
+    "galaxy-merge": "node src/index.js galaxy-merge",
+    "spy-reports": "node src/index.js spy-reports",
+    "spy-send": "node src/index.js spy-send",
+    "attacks-today": "node scripts/export-attacks-today.mjs"
+  },
+  "dependencies": {
+    "axios": "^1.9.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.5.0",
+    "exceljs": "^4.4.0"
+  }
+}
