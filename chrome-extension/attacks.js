@@ -81,6 +81,53 @@ function recordAttack(store, coords, meta = {}) {
   return normalized;
 }
 
+function recordAttacksBatch(store, coordsList, meta = {}) {
+  const normalized = normalizeAttacksStore(store);
+  const today = getTodayKey();
+  const todayCoords = new Set(
+    normalized.attacks.filter((entry) => getDayKey(entry.at) === today).map((entry) => entry.coords)
+  );
+
+  for (const coords of coordsList ?? []) {
+    const value = String(coords ?? "").trim();
+    if (!value || todayCoords.has(value)) continue;
+    normalized.attacks.push({
+      coords: value,
+      at: Date.now(),
+      source: meta.source ?? "import",
+    });
+    todayCoords.add(value);
+  }
+
+  return normalized;
+}
+
+function mergeStorageAttacks(historyRaw, legacyRaw) {
+  const today = getTodayKey();
+  let store = normalizeAttacksStore(historyRaw);
+  const legacy = legacyRaw;
+
+  if (legacy?.coords && typeof legacy.coords === "object" && legacy.date === today) {
+    const now = Date.now();
+    const knownToday = new Set(getAttacksForDay(store, today).map((entry) => entry.coords));
+    for (const [coords, at] of Object.entries(legacy.coords)) {
+      if (knownToday.has(coords)) continue;
+      store.attacks.push({
+        coords: String(coords),
+        at: now,
+        source: "legacy-today",
+      });
+      knownToday.add(coords);
+    }
+  }
+
+  if (!store.attacks.length && legacy) {
+    store = normalizeAttacksStore(legacy);
+  }
+
+  return store;
+}
+
 function getAttacksForDay(store, dayKey = getTodayKey()) {
   const normalized = normalizeAttacksStore(store);
   return normalized.attacks.filter((entry) => getDayKey(entry.at) === dayKey);

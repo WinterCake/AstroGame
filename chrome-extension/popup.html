@@ -8,7 +8,7 @@
   <body>
     <header>
       <h1>Astrogame Assistant</h1>
-      <p class="version">v1.4.3</p>
+      <p class="version">v1.4.4</p>
     </header>
 
     <nav class="tabs">
@@ -134,8 +134,10 @@
         <button type="button" id="spyOpenPanel">Panneau</button>
         <button type="button" id="spyExport">JSON</button>
         <button type="button" id="spyExportAttacks" title="Historique permanent des attaques">Attaques</button>
+        <button type="button" id="spyImportAttacks" title="Importer coords depuis attack-loot (JSON)">Import</button>
         <button type="button" id="spyClear" class="danger">Effacer</button>
       </div>
+      <input type="file" id="spyImportAttacksFile" accept="application/json,.json" hidden />
 
       <p class="hint">Connecté sur Astrogame dans un onglet Chrome. Si Charger échoue : F5 sur l'onglet jeu puis réessaie.</p>
     </section>

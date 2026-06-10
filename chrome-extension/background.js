@@ -7,12 +7,23 @@ const DEFAULT_UNIVERSE = "uni24";
 
 async function getAttacksStore() {
   const result = await chrome.storage.local.get([ATTACKS_STORAGE_KEY, LEGACY_ATTACKS_KEY]);
-  let store = normalizeAttacksStore(result[ATTACKS_STORAGE_KEY]);
+  return mergeStorageAttacks(result[ATTACKS_STORAGE_KEY], result[LEGACY_ATTACKS_KEY]);
+}
 
-  if (!store.attacks.length && result[LEGACY_ATTACKS_KEY]) {
-    store = normalizeAttacksStore(result[LEGACY_ATTACKS_KEY]);
-    await chrome.storage.local.set({ [ATTACKS_STORAGE_KEY]: store });
+async function consolidateAttacksStorage() {
+  const result = await chrome.storage.local.get([ATTACKS_STORAGE_KEY, LEGACY_ATTACKS_KEY]);
+  const store = mergeStorageAttacks(result[ATTACKS_STORAGE_KEY], result[LEGACY_ATTACKS_KEY]);
+  const today = getTodayKey();
+  const legacyCoords = {};
+
+  for (const entry of getAttacksForDay(store, today)) {
+    legacyCoords[entry.coords] = Number(entry.at) || Date.now();
   }
+
+  await chrome.storage.local.set({
+    [ATTACKS_STORAGE_KEY]: store,
+    [LEGACY_ATTACKS_KEY]: { coords: legacyCoords, date: today },
+  });
 
   return store;
 }
@@ -308,6 +319,27 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           safeSend({ ok: true, coords: message.coords, store });
           return;
         }
+        case "BATCH_MARK_ATTACKED": {
+          const coords = Array.isArray(message.coords) ? message.coords : [];
+          if (!coords.length) {
+            safeSend({ ok: false, error: "Liste de coords vide" });
+            return;
+          }
+          const current = await getAttacksStore();
+          const beforeToday = countAttacksToday(current);
+          const store = recordAttacksBatch(current, coords, {
+            source: message.source ?? "batch",
+          });
+          await saveAttacksStore(store);
+          const merged = await consolidateAttacksStorage();
+          safeSend({
+            ok: true,
+            added: countAttacksToday(merged) - beforeToday,
+            today: countAttacksToday(merged),
+            store: merged,
+          });
+          return;
+        }
         case "GET_ATTACKS_SUMMARY": {
           const store = await getAttacksStore();
           safeSend({
@@ -339,4 +371,9 @@ chrome.runtime.onInstalled.addListener(async () => {
   if (store.meta.systemsStored > 0) {
     await chrome.action.setBadgeText({ text: String(store.meta.systemsStored) });
   }
+  await consolidateAttacksStorage();
+});
+
+chrome.runtime.onStartup.addListener(() => {
+  consolidateAttacksStorage().catch(() => {});
 });

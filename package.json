@@ -15,6 +15,9 @@
     "galaxy-merge": "node src/index.js galaxy-merge",
     "spy-reports": "node src/index.js spy-reports",
     "spy-send": "node src/index.js spy-send",
+    "attack-loot": "node src/index.js attack-loot",
+    "attacks-import": "node scripts/push-attacks-to-extension.mjs",
+    "attacks-sync": "node scripts/write-attacks-chrome-storage.mjs",
     "attacks-today": "node scripts/export-attacks-today.mjs"
   },
   "dependencies": {
@@ -22,5 +25,8 @@
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
     "exceljs": "^4.4.0"
+  },
+  "devDependencies": {
+    "classic-level": "^3.0.0"
   }
 }

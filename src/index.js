@@ -23,6 +23,11 @@ import {
   scrapeSpyReports,
   writeSpyReportsExcel,
 } from "./spy-reports.js";
+import {
+  parseAttackLootOptions,
+  printAttackLootSummary,
+  sendAttackLootMissions,
+} from "./attack-loot-send.js";
 import { parseSpySendOptions, printSpySendSummary, sendSpyMissions } from "./spy-send.js";
 
 function printUsage() {
@@ -36,6 +41,7 @@ function printUsage() {
   npm run galaxy-merge [fichiers] Fusionne des exports JSON + Excel
   npm run spy-reports [opts]     Résumé de tous les rapports d'espionnage
   npm run spy-send [opts]        Envoie des sondes vers une liste de coords
+  npm run attack-loot [opts]     Attaques pillage (PT) depuis Main Planète
   npm run parse-local            Parse la page HTML sauvegardée localement
 
 Auth (.env) :
@@ -61,6 +67,8 @@ Exemples:
   npm run spy-send -- --dry-run
   npm run spy-send -- --file spy-targets.txt 4:153:8
   npm run spy-send -- --parallel 5
+  npm run attack-loot -- --file targets/attacks-yesterday.txt --dry-run
+  npm run attack-loot -- --file targets/attacks-yesterday.txt
 `);
 }
 
@@ -68,6 +76,12 @@ async function cmdSpySend(args) {
   const options = parseSpySendOptions(args);
   const result = await sendSpyMissions(options);
   printSpySendSummary(result);
+}
+
+async function cmdAttackLoot(args) {
+  const options = parseAttackLootOptions(args);
+  const result = await sendAttackLootMissions(options);
+  printAttackLootSummary(result);
 }
 
 async function cmdSpyReports(args) {
@@ -217,6 +231,9 @@ async function main() {
       break;
     case "spy-send":
       await cmdSpySend(args);
+      break;
+    case "attack-loot":
+      await cmdAttackLoot(args);
       break;
     case "parse-local":
       cmdParseLocal();

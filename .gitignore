@@ -9,6 +9,13 @@ galaxy-merged.xlsx
 global-galaxy.xlsx
 attacks-today.json
 attacks-today.txt
+attacks-import.json
+attacks-yesterday.json
+loot-targets.json
 global-galaxy-new.xlsx
 ~$*.xlsx
 *.log
+attack-loot-run.log
+fleet-*.html
+fleet-attack-probe.html
+chrome-extension/attacks-import.json

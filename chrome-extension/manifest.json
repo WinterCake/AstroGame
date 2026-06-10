@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Astrogame Assistant",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "Galaxie + rapports d'espionnage (popup et panneau détaillé, sans modifier le jeu)",
   "permissions": ["storage", "tabs", "scripting"],
   "host_permissions": ["https://play.astrogame.org/*"],
@@ -26,7 +26,7 @@
   },
   "web_accessible_resources": [
     {
-      "resources": ["inject.js", "inject-spy.js"],
+      "resources": ["inject.js", "inject-spy.js", "attacks-import.json"],
       "matches": ["https://play.astrogame.org/*"]
     }
   ]

@@ -20,6 +20,8 @@ const spyStatusEl = document.getElementById("spyStatus");
 const spyRefreshBtn = document.getElementById("spyRefresh");
 const spyExportBtn = document.getElementById("spyExport");
 const spyExportAttacksBtn = document.getElementById("spyExportAttacks");
+const spyImportAttacksBtn = document.getElementById("spyImportAttacks");
+const spyImportAttacksFile = document.getElementById("spyImportAttacksFile");
 const spyClearBtn = document.getElementById("spyClear");
 const spyOpenPanelBtn = document.getElementById("spyOpenPanel");
 const spyDetailBox = document.getElementById("spyDetailBox");
@@ -219,10 +221,43 @@ async function refreshGalaxy() {
 }
 
 async function loadAttacks() {
-  attacksStore = normalizeAttacksStore(await sendMessage({ type: "GET_ATTACKS" }));
+  const response = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
+  attacksStore = normalizeAttacksStore(response?.store);
+}
+
+async function syncBundledAttacks() {
+  try {
+    const response = await fetch(chrome.runtime.getURL("attacks-import.json"));
+    if (!response.ok) return;
+
+    const payload = await response.json();
+    const coords = (payload.attacks ?? [])
+      .map((entry) => (typeof entry === "string" ? entry : entry?.coords))
+      .filter(Boolean);
+    if (!coords.length) return;
+
+    const summary = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
+    const todayCoords = new Set(
+      getAttacksForDay(normalizeAttacksStore(summary?.store)).map((entry) => entry.coords)
+    );
+    const missing = coords.filter((coord) => !todayCoords.has(coord));
+    if (!missing.length) return;
+
+    const result = await sendMessage({
+      type: "BATCH_MARK_ATTACKED",
+      coords: missing,
+      source: payload.meta?.source ?? "attack-loot",
+    });
+    if (result?.store) {
+      attacksStore = normalizeAttacksStore(result.store);
+    }
+  } catch {
+    // ignore
+  }
 }
 
 async function refreshSpy() {
+  await syncBundledAttacks();
   await loadAttacks();
   const data = await sendMessage({ type: "GET_SPY_DATA" });
   renderSpy(data ?? { meta: {}, reports: [] });
@@ -334,6 +369,41 @@ spyExportBtn.addEventListener("click", () => {
     "spy-reports"
   );
   setSpyStatus(`${filtered.length} rapport(s) exporté(s).`);
+});
+
+spyImportAttacksBtn.addEventListener("click", () => {
+  spyImportAttacksFile.click();
+});
+
+spyImportAttacksFile.addEventListener("change", async () => {
+  const file = spyImportAttacksFile.files?.[0];
+  spyImportAttacksFile.value = "";
+  if (!file) return;
+
+  try {
+    const payload = JSON.parse(await file.text());
+    const coords = (payload.attacks ?? payload.coords ?? [])
+      .map((entry) => (typeof entry === "string" ? entry : entry?.coords))
+      .filter(Boolean);
+    if (!coords.length) {
+      setSpyStatus("Fichier JSON sans coordonnées.", true);
+      return;
+    }
+    const result = await sendMessage({
+      type: "BATCH_MARK_ATTACKED",
+      coords,
+      source: payload.meta?.source ?? "import-json",
+    });
+    if (!result?.ok) {
+      setSpyStatus(result?.error ?? "Import échoué.", true);
+      return;
+    }
+    attacksStore = normalizeAttacksStore(result.store);
+    renderSpyTable(spyData.reports ?? []);
+    setSpyStatus(`${coords.length} coordonnée(s) importée(s) — ${countAttacksToday(attacksStore)} attaquée(s) aujourd'hui.`);
+  } catch (error) {
+    setSpyStatus(`Import : ${error.message}`, true);
+  }
 });
 
 spyExportAttacksBtn.addEventListener("click", async () => {

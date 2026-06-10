@@ -7,8 +7,25 @@ import {
 
 const COMBAT_CATEGORY = 100;
 
+const MONTHS_FR = [
+  "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+  "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+];
+
+function dateMarkerInHtml(dayKey) {
+  const [, month, day] = dayKey.split("-");
+  return `${String(day).padStart(2, "0")}. ${MONTHS_FR[Number(month) - 1]}`;
+}
+
 function parseArgs(argv) {
-  const options = { jsonFile: null, storageDir: null, pasteFile: null };
+  const options = {
+    jsonFile: null,
+    storageDir: null,
+    pasteFile: null,
+    day: null,
+    jsonOut: "attacks-today.json",
+    txtOut: "attacks-today.txt",
+  };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
     if (arg === "--json" && argv[index + 1]) {
@@ -17,6 +34,12 @@ function parseArgs(argv) {
       options.storageDir = argv[++index];
     } else if (arg === "--paste" && argv[index + 1]) {
       options.pasteFile = argv[++index];
+    } else if (arg === "--day" && argv[index + 1]) {
+      options.day = argv[++index];
+    } else if (arg === "--output" && argv[index + 1]) {
+      options.txtOut = argv[++index];
+    } else if (arg === "--json-out" && argv[index + 1]) {
+      options.jsonOut = argv[++index];
     }
   }
   return options;
@@ -204,7 +227,7 @@ async function scrapeCombatReportsToday(client, dayKey = getTodayKey()) {
             ).data
           );
 
-    const hasToday = html.includes(dayKey.slice(8, 10) + ". Juin") || html.includes("09. Juin");
+    const hasToday = html.includes(dateMarkerInHtml(dayKey));
     const pageAttacks = extractAttacksFromCombatReportsHtml(html, dayKey);
     attacks.push(...pageAttacks);
 
@@ -253,7 +276,7 @@ function uniqueCoordsToday(attacks, dayKey = getTodayKey()) {
 }
 
 const cli = parseArgs(process.argv.slice(2));
-const dayKey = getTodayKey();
+const dayKey = cli.day ?? getTodayKey();
 
 const extension = loadAttacksFromSources({
   jsonFile: cli.jsonFile,
@@ -314,13 +337,13 @@ const output = {
   attacks: all,
 };
 
-const jsonPath = "attacks-today.json";
-const txtPath = "attacks-today.txt";
+const jsonPath = cli.jsonOut;
+const txtPath = cli.txtOut;
 
 writeFileSync(jsonPath, JSON.stringify(output, null, 2), "utf8");
 writeFileSync(txtPath, output.coords.join("\n") + (output.coords.length ? "\n" : ""), "utf8");
 
-console.log(`${all.length} coordonnée(s) attaquée(s) aujourd'hui (${dayKey})`);
+console.log(`${all.length} coordonnée(s) attaquée(s) le ${dayKey}`);
 console.log(`  rapports de bataille: ${output.meta.counts.combatReportsUnique} unique`);
 if (extension.chrome?.counts) {
   console.log(

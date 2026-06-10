@@ -140,7 +140,39 @@ function renderMeta() {
 }
 
 async function loadAttacks() {
-  attacksStore = normalizeAttacksStore(await sendMessage({ type: "GET_ATTACKS" }));
+  const response = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
+  attacksStore = normalizeAttacksStore(response?.store);
+}
+
+async function syncBundledAttacks() {
+  try {
+    const response = await fetch(chrome.runtime.getURL("attacks-import.json"));
+    if (!response.ok) return;
+
+    const payload = await response.json();
+    const coords = (payload.attacks ?? [])
+      .map((entry) => (typeof entry === "string" ? entry : entry?.coords))
+      .filter(Boolean);
+    if (!coords.length) return;
+
+    const summary = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
+    const todayCoords = new Set(
+      getAttacksForDay(normalizeAttacksStore(summary?.store)).map((entry) => entry.coords)
+    );
+    const missing = coords.filter((coord) => !todayCoords.has(coord));
+    if (!missing.length) return;
+
+    const result = await sendMessage({
+      type: "BATCH_MARK_ATTACKED",
+      coords: missing,
+      source: payload.meta?.source ?? "attack-loot",
+    });
+    if (result?.store) {
+      attacksStore = normalizeAttacksStore(result.store);
+    }
+  } catch {
+    // fichier absent ou extension pas rechargée
+  }
 }
 
 async function loadData() {
@@ -208,6 +240,7 @@ async function init() {
   selectedId = params.id;
   updateSpySortHeaders(panelSortHead, sortState);
 
+  await syncBundledAttacks();
   await loadData();
 
   if (selectedId && findReport(selectedId)) {
@@ -216,13 +249,14 @@ async function init() {
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "local" || !changes.attacksHistory) return;
-  attacksStore = normalizeAttacksStore(changes.attacksHistory.newValue);
-  renderMeta();
-  renderTable();
-  if (selectedId && findReport(selectedId)) {
-    selectReport(selectedId);
-  }
+  if (area !== "local" || (!changes.attacksHistory && !changes.attacksToday)) return;
+  loadAttacks().then(() => {
+    renderMeta();
+    renderTable();
+    if (selectedId && findReport(selectedId)) {
+      selectReport(selectedId);
+    }
+  });
 });
 
 init();
