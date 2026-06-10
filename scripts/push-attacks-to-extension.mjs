@@ -11,11 +11,27 @@ function parseCoordsFromLog(text) {
   return [...new Set(coords)];
 }
 
+function loadCoordsFromText(text) {
+  return [
+    ...new Set(
+      text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"))
+        .filter((line) => /^\d+:\d+:\d+$/.test(line))
+    ),
+  ];
+}
+
 function loadCoords(options) {
   if (options.coords?.length) return options.coords;
 
   if (options.file && existsSync(options.file)) {
-    const raw = JSON.parse(readFileSync(options.file, "utf8"));
+    const content = readFileSync(options.file, "utf8");
+    if (options.file.endsWith(".txt")) {
+      return loadCoordsFromText(content);
+    }
+    const raw = JSON.parse(content);
     if (Array.isArray(raw.attacks)) {
       return raw.attacks.map((entry) => String(entry.coords ?? entry).trim()).filter(Boolean);
     }

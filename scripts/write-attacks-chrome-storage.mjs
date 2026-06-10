@@ -31,7 +31,11 @@ function copyDir(sourceDir, destDir) {
   mkdirSync(destDir, { recursive: true });
   for (const file of readdirSync(sourceDir)) {
     if (file === "LOCK") continue;
-    copyFileSync(join(sourceDir, file), join(destDir, file));
+    try {
+      copyFileSync(join(sourceDir, file), join(destDir, file));
+    } catch {
+      // Fichier verrouillé par Chrome — on continue avec le reste
+    }
   }
 }
 

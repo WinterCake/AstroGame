@@ -11,6 +11,8 @@ attacks-today.json
 attacks-today.txt
 attacks-import.json
 attacks-yesterday.json
+attacks-tonight.json
+/attacks-tonight.txt
 loot-targets.json
 global-galaxy-new.xlsx
 ~$*.xlsx
