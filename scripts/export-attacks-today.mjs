@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { getClient } from "../src/client.js";
+import { paths } from "../src/paths.js";
 import {
   getTodayKey,
   loadAttacksFromSources,
@@ -23,8 +24,8 @@ function parseArgs(argv) {
     storageDir: null,
     pasteFile: null,
     day: null,
-    jsonOut: "attacks-today.json",
-    txtOut: "attacks-today.txt",
+    jsonOut: paths.attacks.todayJson(),
+    txtOut: paths.attacks.todayTxt(),
   };
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];

@@ -1,6 +1,7 @@
 import { execSync } from "node:child_process";
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { paths } from "../src/paths.js";
 
 const EXTENSION_ID = "jgnbpobailkodlipilakbkappapadddp";
 
@@ -64,7 +65,7 @@ function parseArgs(argv) {
     else if (/^\d+:\d+:\d+$/.test(arg)) options.coords.push(arg);
   }
   if (!options.file && !options.log) {
-    options.file = resolve("attacks-import.json");
+    options.file = paths.attacks.import();
     options.log = resolve("attack-loot-run.log");
   }
   return options;
@@ -88,7 +89,7 @@ if (!coords.length) {
 }
 
 writeFileSync(
-  resolve("attacks-import.json"),
+  paths.attacks.import(),
   JSON.stringify(
     {
       meta: { source: options.source, importedAt: new Date().toISOString() },
@@ -104,7 +105,7 @@ const url = buildImportUrl(coords, options.source);
 console.log(`${coords.length} coordonnée(s) prêtes pour l'extension.`);
 console.log(url);
 
-copyFileSync(resolve("attacks-import.json"), resolve("chrome-extension/attacks-import.json"));
+copyFileSync(paths.attacks.import(), paths.attacks.extensionImport());
 
 if (options.open) {
   try {

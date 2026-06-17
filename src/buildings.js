@@ -177,10 +177,11 @@ export function formatPlanetHeader(planet) {
   return parts.join(" — ");
 }
 
-export async function getBuildings(client) {
+export async function getBuildings(client, options = {}) {
   const http = client ?? (await getClient());
-  log.info("Récupération de la page bâtiments");
-  const html = await fetchPage(http, "game/buildings");
+  const path = options.cp ? `game/buildings?cp=${options.cp}` : "game/buildings";
+  log.info("Récupération de la page bâtiments", options.cp ? { cp: options.cp } : {});
+  const html = await fetchPage(http, path);
   const page = parseBuildingsPage(html);
   log.info(`${page.buildings.length} bâtiments parsés — ${formatPlanetHeader(page.planet)}`, {
     token: maskToken(page.token),

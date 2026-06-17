@@ -56,8 +56,8 @@ Exemples:
   npm run upgrade -- 4 36
   npm run galaxy-scrape -- --system 5:270
   npm run galaxy-scrape -- --galaxy 5 --output galaxy-g5.json
-  npm run galaxy-scrape -- --galaxy 5 --systems 374-400 --output galaxy-g5.json --merge
   npm run galaxy-scrape -- --all --output galaxy-uni24.json
+  npm run galaxy-scrape -- --galaxy 5 --output galaxy-g5.json --refresh
   npm run galaxy-merge -- --all
   npm run galaxy-merge -- galaxy-g5.json galaxy-2026-06-09.json
   npm run spy-reports

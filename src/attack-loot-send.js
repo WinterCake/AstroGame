@@ -2,12 +2,29 @@ import { readFileSync, existsSync, writeFileSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import { getClient, postForm } from "./client.js";
+import { paths } from "./paths.js";
 import { isSansDefense } from "./spy-reports.js";
+import {
+  extractFleetTiming,
+  findOwnAttackFleet,
+  formatDurationSec,
+  formatShipsLabel,
+  parseActiveFleetActs,
+  parseFlightDurationFromStep2,
+  parsePlanetByCp,
+} from "./fleet-active.js";
 import { formatCoords, loadSpyTargets, parseCoordLine } from "./spy-send.js";
 import { createLogger } from "./logger.js";
+import {
+  getAttackedTodayCoords,
+  mergeAttackRecords,
+  normalizeAttacksStore,
+  serializeAttacksStore,
+} from "./attacks-history.js";
 
 const log = createLogger("attack-loot");
 const SHIP_SMALL_CARGO = "ship202";
+const SHIP_BATTLE = "ship207";
 const ATTACK_MISSION = "1";
 const LOOT_FRACTION = 0.5;
 const CARGO_PER_TRANSPORT = Number(process.env.ATTACK_LOOT_CARGO_PT) || 10_000_000;
@@ -88,10 +105,14 @@ export function parseGameAmount(value) {
   return Number.isFinite(amount) ? Math.floor(amount) : 0;
 }
 
-function parseAvailableSmallTransports(html) {
+function parseAvailableShip(html, shipId) {
   const $ = cheerio.load(html);
-  const amount = parseGameAmount($("#ship202_value").attr("data-amount"));
+  const amount = parseGameAmount($(`#${shipId}_value`).attr("data-amount"));
   return amount > 0 ? amount : 0;
+}
+
+function parseAvailableSmallTransports(html) {
+  return parseAvailableShip(html, "ship202");
 }
 
 function parseFleetRoomFromStep2(html) {
@@ -158,6 +179,8 @@ export function parseAttackLootOptions(args) {
     delayMaxMs: Number(process.env.ATTACK_LOOT_DELAY_MAX_MS) || 900,
     minLoot: 0,
     sansDefenseOnly: true,
+    battleShips: 0,
+    skipAttackedFile: null,
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -168,6 +191,8 @@ export function parseAttackLootOptions(args) {
     else if (arg === "--cp") options.cp = Number(args[++i]);
     else if (arg === "--reserve-slots") options.reserveSlots = Number(args[++i]);
     else if (arg === "--min-loot") options.minLoot = Number(args[++i]);
+    else if (arg === "--battle-ships") options.battleShips = Number(args[++i]) || 0;
+    else if (arg === "--skip-attacked") options.skipAttackedFile = args[++i] ?? paths.attacks.import();
     else if (arg === "--all-reports") options.sansDefenseOnly = false;
     else if (/^\d+:\d+:\d+$/.test(arg)) {
       const target = parseCoordLine(arg);
@@ -176,6 +201,14 @@ export function parseAttackLootOptions(args) {
   }
 
   return options;
+}
+
+function loadSkipCoordsSet(skipAttackedFile) {
+  if (!skipAttackedFile) return new Set();
+  const filePath = resolve(skipAttackedFile);
+  if (!existsSync(filePath)) return new Set();
+  const payload = JSON.parse(readFileSync(filePath, "utf8"));
+  return getAttackedTodayCoords(payload);
 }
 
 function loadSpyMetaMap(spyJsonPath) {
@@ -204,11 +237,17 @@ export function buildAttackTargets(options) {
   const unique = new Map();
   for (const target of coords) unique.set(formatCoords(target), target);
 
-  const spyJsonPath = options.spyJson ? resolve(options.spyJson) : resolve("loot-targets.json");
+  const spyJsonPath = options.spyJson ? resolve(options.spyJson) : paths.spy.lootTargets();
   const spyMeta = loadSpyMetaMap(spyJsonPath);
+  const skipCoords = loadSkipCoordsSet(options.skipAttackedFile);
   const targets = [];
 
   for (const [coords, target] of unique) {
+    if (skipCoords.has(coords)) {
+      log.warn(`Skip ${coords}`, { reason: "déjà attaqué aujourd'hui" });
+      continue;
+    }
+
     const report = spyMeta.get(coords);
     if (options.sansDefenseOnly) {
       if (!report) {
@@ -232,6 +271,7 @@ export function buildAttackTargets(options) {
       planetName: report?.planetName ?? null,
       username: report?.username ?? null,
       ships: calcSmallTransportsForLoot(loot),
+      battleShips: options.battleShips,
     });
   }
 
@@ -260,17 +300,23 @@ async function waitForFleetSlot(client, options) {
   }
 }
 
-async function resolveMainCp(client, cpOverride) {
-  if (cpOverride) return cpOverride;
+async function resolveSourcePlanet(client, cpOverride) {
   const html = String(
     (await client.get("game/overview", {
       headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
     })).data
   );
+  if (cpOverride) {
+    const planet = parsePlanetByCp(html, cpOverride);
+    if (planet.coords) {
+      log.info(`Départ : ${planet.label}`);
+      return planet;
+    }
+  }
   const main = parseMainPlanetCp(html);
   if (!main.cp) throw new Error("Impossible de détecter la Main Planète (cp).");
   log.info(`Départ : ${main.label}`);
-  return main.cp;
+  return main;
 }
 
 export async function sendLootAttack(client, target, options) {
@@ -284,8 +330,10 @@ export async function sendLootAttack(client, target, options) {
   );
 
   const needed = target.ships;
+  const battleNeeded = Math.max(0, Number(target.battleShips) || 0);
   const available = parseAvailableSmallTransports(step0Html);
-  if (available <= 0) {
+  const availableBattle = parseAvailableShip(step0Html, "ship207");
+  if (available <= 0 && battleNeeded <= 0) {
     return { ok: false, error: "Aucun petit transporteur disponible sur la planète de départ" };
   }
   if (available < needed) {
@@ -295,6 +343,15 @@ export async function sendLootAttack(client, target, options) {
       ships: 0,
       available,
       needed,
+    };
+  }
+  if (battleNeeded > 0 && availableBattle < battleNeeded) {
+    return {
+      ok: false,
+      error: `VB insuffisants sur Main : ${availableBattle.toLocaleString("fr-FR")} dispo, ${battleNeeded.toLocaleString("fr-FR")} requis`,
+      ships: 0,
+      availableBattle,
+      battleNeeded,
     };
   }
   const ships = needed;
@@ -308,6 +365,7 @@ export async function sendLootAttack(client, target, options) {
     fleetgroup: "0",
     [SHIP_SMALL_CARGO]: String(ships),
   };
+  if (battleNeeded > 0) body1[SHIP_BATTLE] = String(battleNeeded);
 
   const step1Html = await postForm(
     client,
@@ -338,6 +396,7 @@ export async function sendLootAttack(client, target, options) {
     body2,
     "https://play.astrogame.org/uni24/game/fleetStep1"
   );
+  const flightDurationSec = parseFlightDurationFromStep2(step2Html);
 
   const $2 = cheerio.load(step2Html);
   const step3Form = $2('form[action*="fleetStep3"]').first();
@@ -376,13 +435,49 @@ export async function sendLootAttack(client, target, options) {
   );
 
   const result = parsePageMessage(step3Html);
-  return {
+  const base = {
     ok: result.ok,
     message: result.message,
     ships,
+    battleShips: battleNeeded,
     available,
     needed,
     fleetRoom: fleetRoom ?? undefined,
+    sourceCp: cp,
+    sourceCoords: options.sourcePlanet?.coords ?? null,
+    sourceLabel: options.sourcePlanet?.label ?? null,
+    targetCoords: formatCoords(target),
+    shipsLabel: formatShipsLabel(ships, battleNeeded),
+    flightDurationSec,
+  };
+
+  if (!result.ok) return base;
+
+  let timing = extractFleetTiming(null, flightDurationSec);
+  try {
+    const fleetHtml = String(
+      (await client.get(`game/fleetTable?cp=${cp}`, {
+        headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
+      })).data
+    );
+    const activeFleet = findOwnAttackFleet(
+      parseActiveFleetActs(fleetHtml),
+      formatCoords(target),
+      options.sourcePlanet?.coords ?? null
+    );
+    if (activeFleet) timing = extractFleetTiming(activeFleet, flightDurationSec);
+  } catch {
+    /* garder l'estimation step2 */
+  }
+
+  return {
+    ...base,
+    durationOutSec: timing.durationOutSec,
+    durationReturnSec: timing.durationReturnSec,
+    arrivalAt: timing.arrivalAt,
+    returnAt: timing.returnAt,
+    durationOutFormatted: formatDurationSec(timing.durationOutSec),
+    durationReturnFormatted: formatDurationSec(timing.durationReturnSec),
   };
 }
 
@@ -399,7 +494,9 @@ export async function sendAttackLootMissions(options = {}, client) {
   log.info(`${targets.length} cible(s) à attaquer`);
 
   if (!options.dryRun) {
-    options.cp = await resolveMainCp(http, options.cp);
+    const sourcePlanet = await resolveSourcePlanet(http, options.cp);
+    options.cp = sourcePlanet.cp;
+    options.sourcePlanet = sourcePlanet;
   }
 
   for (let index = 0; index < targets.length; index++) {
@@ -430,17 +527,30 @@ export async function sendAttackLootMissions(options = {}, client) {
         ok: payload.ok,
         message: payload.message ?? payload.error,
         ships: payload.ships,
+        battleShips: payload.battleShips ?? target.battleShips,
+        shipsLabel: payload.shipsLabel ?? formatShipsLabel(payload.ships, payload.battleShips),
         needed: target.ships,
         loot: target.loot,
         lootFormatted: target.lootFormatted,
         planetName: target.planetName,
         username: target.username,
         fleetSlots: slotStatus ? `${slotStatus.used}/${slotStatus.max}` : null,
+        sourceCp: options.cp,
+        sourceCoords: payload.sourceCoords ?? options.sourcePlanet?.coords ?? null,
+        sourceLabel: payload.sourceLabel ?? options.sourcePlanet?.label ?? null,
+        targetCoords: payload.targetCoords ?? target.coords,
+        durationOutSec: payload.durationOutSec,
+        durationReturnSec: payload.durationReturnSec,
+        durationOutFormatted: payload.durationOutFormatted,
+        durationReturnFormatted: payload.durationReturnFormatted,
+        arrivalAt: payload.arrivalAt,
+        returnAt: payload.returnAt,
       });
 
       if (payload.ok) {
         log.info(`OK ${label}`, {
           ships: `${payload.ships}/${target.ships} PT`,
+          battleShips: payload.battleShips ? `${payload.battleShips} VB` : undefined,
           cargo: payload.fleetRoom ? `${Math.round(payload.fleetRoom / 1_000_000)}M` : "?",
           butin: target.lootFormatted,
         });
@@ -473,6 +583,9 @@ export async function sendAttackLootMissions(options = {}, client) {
       dryRun: Boolean(options.dryRun),
       reserveSlots: options.reserveSlots,
       fleetSlots: slotStatus ? `${slotStatus.used}/${slotStatus.max}` : null,
+      sourceCp: options.cp ?? null,
+      sourceCoords: options.sourcePlanet?.coords ?? null,
+      sourceLabel: options.sourcePlanet?.label ?? null,
     },
     results,
   };
@@ -488,22 +601,29 @@ function saveAttacksImportFile(results) {
   const okCoords = results.filter((result) => result.ok).map((result) => result.coords);
   if (!okCoords.length) return;
 
-  const filePath = resolve("attacks-import.json");
-  writeFileSync(
-    filePath,
-    JSON.stringify(
-      {
-        meta: { source: "attack-loot", importedAt: new Date().toISOString() },
-        attacks: okCoords.map((coords) => ({ coords, source: "attack-loot" })),
-      },
-      null,
-      2
-    ),
-    "utf8"
-  );
-  const extensionPath = resolve("chrome-extension/attacks-import.json");
-  copyFileSync(filePath, extensionPath);
-  log.info(`Export extension → ${filePath}`, { count: okCoords.length });
+  const filePath = paths.attacks.import();
+  let existing = null;
+  if (existsSync(filePath)) {
+    try {
+      existing = JSON.parse(readFileSync(filePath, "utf8"));
+    } catch {
+      existing = null;
+    }
+  }
+
+  const store = mergeAttackRecords(existing, okCoords, { source: "attack-loot" });
+  saveAttacksStore(store);
+  log.info(`Export extension → ${paths.attacks.import()}`, { count: okCoords.length });
+}
+
+export function saveAttacksStore(storeRaw) {
+  const normalized = normalizeAttacksStore(storeRaw);
+  const meta = storeRaw && typeof storeRaw === "object" && storeRaw.meta ? storeRaw.meta : {};
+  const payload = serializeAttacksStore(normalized, meta);
+  const filePath = paths.attacks.import();
+  writeFileSync(filePath, JSON.stringify(payload, null, 2), "utf8");
+  copyFileSync(filePath, paths.attacks.extensionImport());
+  return payload;
 }
 
 export function printAttackLootSummary(payload) {
@@ -521,11 +641,11 @@ export function printAttackLootSummary(payload) {
       ? `${result.coords} ${result.planetName} (${result.username ?? "?"})`
       : result.coords;
     const status = result.ok ? "OK" : "KO";
-    const ships = result.ships
-      ? `${result.ships} PT`
-      : result.needed
-        ? `0/${result.needed} PT`
-        : "—";
+    const shipParts = [];
+    if (result.ships) shipParts.push(`${result.ships} PT`);
+    else if (result.needed) shipParts.push(`0/${result.needed} PT`);
+    if (result.battleShips) shipParts.push(`${result.battleShips} VB`);
+    const ships = shipParts.length ? shipParts.join(" + ") : "—";
     const detail = result.message ?? result.error ?? (result.dryRun ? "prêt" : "—");
     const loot = result.lootFormatted ?? "—";
     console.log(

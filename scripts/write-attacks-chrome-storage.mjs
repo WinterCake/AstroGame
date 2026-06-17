@@ -2,12 +2,13 @@ import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync } from "
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { ClassicLevel } from "classic-level";
+import { paths } from "../src/paths.js";
 import { defaultChromeStorageDir, getTodayKey } from "./chrome-storage-attacks.mjs";
 
 const EXTENSION_ID = "jgnbpobailkodlipilakbkappapadddp";
 
 function loadCoordsFromArgs(argv) {
-  const options = { file: resolve("attacks-import.json") };
+  const options = { file: paths.attacks.import() };
   const coords = [];
 
   for (let i = 0; i < argv.length; i++) {

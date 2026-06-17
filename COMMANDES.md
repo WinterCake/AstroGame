@@ -166,8 +166,11 @@ npm run galaxy-scrape -- --galaxy 5 --output galaxy-g5.json
 # Univers complet (6 galaxie × 400 systèmes ≈ 2400 requêtes, ~45–80 min avec délai aléatoire)
 npm run galaxy-scrape -- --all --output galaxy-uni24.json
 
-# Reprendre une plage sans écraser le reste du fichier
-npm run galaxy-scrape -- --galaxy 5 --systems 374-400 --output galaxy-g5.json --merge
+# Reprendre après interruption : relancer la même commande (reprise automatique)
+npm run galaxy-scrape -- --all --output galaxy-uni24.json
+
+# Forcer un re-scan d'une plage déjà présente dans le fichier
+npm run galaxy-scrape -- --galaxy 5 --output galaxy-g5.json --refresh
 ```
 
 Options :
@@ -178,23 +181,26 @@ Options :
 | `--galaxy N` ou `N-M` | Plage de galaxie(s) |
 | `--systems N` ou `N-M` | Plage de systèmes (défaut 1–400) |
 | `--all` | Scan complet de l'univers |
-| `--merge` | Fusionne avec le JSON existant (garde les systèmes non re-scannés) |
 | `--output fichier.json` | Fichier de sortie (défaut `galaxy-players.json`) |
+| `--refresh` | Re-scanne la plage demandée même si déjà dans le fichier |
 | Délai entre requêtes | Aléatoire entre 250 ms et 2 s (`GALAXY_SCRAPE_DELAY_MIN_MS` / `GALAXY_SCRAPE_DELAY_MAX_MS` dans `.env`) |
 
 Sans argument, scrape le système **5:270** par défaut.
 
-**Sans `--merge`** : le fichier est entièrement remplacé par la plage scannée.
+**Comportement par défaut (toujours actif)** :
+- **Fusion** : conserve les systèmes hors plage dans le fichier existant
+- **Reprise** : saute les systèmes déjà présents ; en cas d'interruption, relancer la même commande reprend où ça s'est arrêté
+- Sauvegarde **après chaque système** scanné
 
-**Avec `--merge`** : charge le fichier existant, conserve les systèmes hors plage, remplace ceux re-scannés.
+Les anciennes options `--merge` et `--resume` sont ignorées (affichage d'un avertissement).
 
 Structure du JSON :
 
-- `meta` — date, limites univers, compteurs (`systemsStored`, `lastScanned`, etc.)
+- `meta` — date, limites univers, compteurs (`systemsStored`, `lastScanned`, `runComplete`, etc.)
 - `entries` — liste plate de chaque planète occupée (`coords`, `username`, `alliance`, `moon`, `debris`, etc.)
 - `players` — même données regroupées par joueur avec leur liste de planètes
 
-Le fichier est **mis à jour après chaque système** scanné. En cas d'erreur (captcha, rate limit…), une sauvegarde partielle reste disponible (`meta.complete: false` ou `meta.runComplete: false` avec `--merge`).
+En cas d'erreur (session, rate limit…), le fichier partiel reste utilisable : relancer la même commande.
 
 ---
 
@@ -204,7 +210,7 @@ Fusionne plusieurs exports galaxie (JSON scraper Node ou extension Chrome) et pr
 
 ```bash
 # Tous les exports sources galaxy*.json (exclut les *-merged.json)
-npm run galaxy-merge -- --all --output global-galaxy.json --excel global-galaxy.xlsx
+npm run galaxy-merge -- --all --output data/galaxy/global.json --excel data/galaxy/global.xlsx
 
 # Fichiers précis
 npm run galaxy-merge -- galaxy-g5.json galaxy-2026-06-09.json
@@ -346,3 +352,69 @@ Raccourci équivalent :
 ```env
 ASTROGAME_DEBUG=0
 ```
+
+---
+
+## Données (`data/`)
+
+Les fichiers JSON locaux sont centralisés sous `data/` (gitignored) :
+
+| Chemin | Rôle |
+|--------|------|
+| `data/galaxy/global.json` | Galaxie fusionnée (source de vérité) |
+| `data/galaxy/exports/` | Exports par scrape (`galaxy-g*.json`) |
+| `data/spy/loot-targets.json` | Rapports espionnage pour attaques |
+| `data/spy/reports.json` | Export brut des rapports |
+| `data/attacks/import.json` | Coords déjà attaquées |
+| `data/empire/snapshot.json` | Dernier scan ressources empire |
+
+Migration depuis l'ancienne racine :
+
+```bash
+npm run migrate-data
+```
+
+Variable optionnelle : `ASTROGAME_DATA_DIR` pour changer le dossier racine des données.
+
+---
+
+## Interface web (MVP)
+
+Application locale **Empire / Galaxie / Espionnage / Attaques**.
+
+### Démarrage
+
+```bash
+npm install
+cd web && npm install && cd ..
+npm run dev
+```
+
+- API : `http://127.0.0.1:3847`
+- Front (dev) : `http://localhost:5173` (proxy `/api` vers l'API)
+
+Production (front buildé servi par l'API) :
+
+```bash
+npm run build:web
+npm start
+```
+
+Puis ouvre `http://127.0.0.1:3847`.
+
+### Fonctionnalités
+
+- **Empire** : scan ressources + flottes, bâtiments par planète
+- **Galaxie** : tableau filtrable (inactifs, recherche), sélection → espionnage
+- **Espionnage** : sync rapports jeu, filtres butin/défense, croisement galaxie
+- **Attaques** : preview PT + envoi batch depuis coords sélectionnées
+
+Sélecteur **planète source** (header) : colonie de départ pour espionnage et attaques.
+
+Variables optionnelles :
+
+```env
+ASTROGAME_UI_PORT=3847
+ASTROGAME_UI_HOST=127.0.0.1
+```
+

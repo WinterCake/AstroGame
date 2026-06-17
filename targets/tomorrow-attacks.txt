@@ -1,0 +1,109 @@
+# Cibles prioritaires pour demain (17/06/2026)
+# Basé sur attaques passées + rapports espionnage + galaxie
+# Score = historique attaques + multi-planètes joueur + butin actuel
+
+## Priorité haute (score >= 140)
+5:231:6  # Bradaat | 11.4 Md | 3 attaques passées, 5 planètes du joueur, inactif attaquable, sans défense, gros butin
+2:132:6  # Bradaat | 7.1 Md | 3 attaques passées, 5 planètes du joueur, inactif attaquable, sans défense, gros butin
+1:190:3  # spiuncy | 5.7 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+2:381:8  # remivid15 | 5.7 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+2:380:15  # remivid15 | 5.1 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+
+## Priorité moyenne (score 120-139)
+5:230:7  # remivid15 | 9.9 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+5:230:10  # remivid15 | 7.1 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+2:135:6  # Bradaat | 7.0 Md | 2 attaques passées, 5 planètes du joueur, inactif attaquable, sans défense, gros butin
+5:380:8  # remivid15 | 5.3 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+2:193:7  # spiuncy | 5.1 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense, gros butin
+4:193:7  # spiuncy | 4.7 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+4:301:8  # spiuncy | 4.6 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+1:381:8  # remivid15 | 4.6 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+1:330:8  # spiuncy | 4.5 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+2:301:8  # spiuncy | 4.2 Md | 3 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+3:44:9  # cridape84 | 4.1 Md | 3 attaques passées, 5 planètes du joueur, inactif attaquable, sans défense
+5:380:15  # remivid15 | 4.9 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+5:380:7  # remivid15 | 4.5 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+2:227:9  # XxMoisesxX | 4.2 Md | 2 attaques passées, 6 planètes du joueur, inactif attaquable, sans défense
+3:43:1  # cridape84 | 3.8 Md | 2 attaques passées, 5 planètes du joueur, inactif attaquable, sans défense
+5:193:7  # spiuncy | 3.8 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+3:102:7  # spiuncy | 3.7 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+5:100:8  # spiuncy | 3.6 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+3:193:7  # spiuncy | 1.5 Md | 2 attaques passées, 11 planètes du joueur, inactif attaquable, sans défense
+
+## Joueurs à enchaîner (plusieurs planètes déjà attaquées)
+# remivid15 (11 planètes historiques)
+2:381:8  # 5.7 Md SD
+2:380:15  # 5.1 Md SD
+5:230:7  # 9.9 Md SD
+5:230:10  # 7.1 Md SD
+5:380:8  # 5.3 Md SD
+
+# spiuncy (11 planètes historiques)
+1:190:3  # 5.7 Md SD
+2:193:7  # 5.1 Md SD
+4:193:7  # 4.7 Md SD
+4:301:8  # 4.6 Md SD
+1:330:8  # 4.5 Md SD
+
+# XxMoisesxX (6 planètes historiques)
+2:227:9  # 4.2 Md SD
+2:221:14  # 2.2 Md SD
+2:227:10  # 1.2 Md SD
+2:226:3  # 1.0 Md SD
+2:225:4  # 944.2 M SD
+
+# Malhnov (6 planètes historiques)
+2:333:4  # 1.1 Md SD
+2:333:8  # 763.6 M SD
+2:335:4  # 864.8 M SD
+2:335:8  # 746.6 M SD
+2:335:12  # 740.3 M SD
+
+# cridape84 (5 planètes historiques)
+3:44:9  # 4.1 Md SD
+3:43:1  # 3.8 Md SD
+1:1:11  # 1.6 Md SD
+3:44:8  # 8.4 Md
+
+# Bradaat (5 planètes historiques)
+5:231:6  # 11.4 Md SD
+2:132:6  # 7.1 Md SD
+2:135:6  # 7.0 Md SD
+4:134:8  # 15.7 Md
+4:134:7  # 14.3 Md
+
+# Mars2011 (3 planètes historiques)
+4:381:8  # 3.7 Md SD
+4:381:1  # 3.6 Md SD
+4:381:15  # 955.3 M SD
+
+# jeto25 (3 planètes historiques)
+4:105:11  # 9.4 Md SD
+4:105:12  # 8.7 Md SD
+4:105:1  # 6.6 Md SD
+
+## Liste coords seule (copier-coller)
+5:231:6
+2:132:6
+1:190:3
+2:381:8
+2:380:15
+5:230:7
+5:230:10
+2:135:6
+5:380:8
+2:193:7
+4:193:7
+4:301:8
+1:381:8
+1:330:8
+2:301:8
+3:44:9
+5:380:15
+5:380:7
+2:227:9
+3:43:1
+5:193:7
+3:102:7
+5:100:8
+3:193:7

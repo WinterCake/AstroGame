@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, resolve } from "node:path";
 import ExcelJS from "exceljs";
 import { UNIVERSE } from "./config.js";
+import { paths } from "./paths.js";
 import { groupEntriesByPlayer } from "./galaxy.js";
 import { green, logSuccess } from "./logger.js";
 
@@ -237,15 +238,12 @@ export async function writeGalaxyExcel(payload, outputPath) {
   await workbook.xlsx.writeFile(resolve(outputPath));
 }
 
-export function discoverGalaxyJsonFiles(directory = ".") {
-  return readdirSync(resolve(directory))
-    .filter((name) => {
-      if (!/^galaxy.*\.json$/i.test(name)) return false;
-      if (/merged\.json$/i.test(name)) return false;
-      if (name === "global-galaxy.json") return false;
-      return true;
-    })
-    .map((name) => resolve(directory, name))
+export function discoverGalaxyJsonFiles(directory = paths.galaxy.exportsDir()) {
+  const dir = resolve(directory);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((name) => /^galaxy.*\.json$/i.test(name) && !/merged\.json$/i.test(name))
+    .map((name) => resolve(dir, name))
     .sort();
 }
 
@@ -253,8 +251,8 @@ export function parseGalaxyMergeOptions(args) {
   const options = {
     files: [],
     all: false,
-    outputJson: "galaxy-merged.json",
-    outputExcel: "galaxy-merged.xlsx",
+    outputJson: paths.galaxy.merged(),
+    outputExcel: paths.galaxy.mergedExcel(),
     json: true,
     excel: true,
   };
@@ -282,7 +280,7 @@ export function parseGalaxyMergeOptions(args) {
 export async function mergeGalaxyExports(options) {
   let files = options.files;
   if (options.all || files.length === 0) {
-    files = discoverGalaxyJsonFiles(".");
+    files = discoverGalaxyJsonFiles();
   }
 
   if (files.length === 0) {

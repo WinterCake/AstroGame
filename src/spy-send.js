@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import { getClient, refreshClient } from "./client.js";
+import { mergeFleetLegs, parseActiveFleetActs } from "./fleet-active.js";
 import { fetchGalaxySystem } from "./galaxy.js";
 import { createLogger } from "./logger.js";
 
@@ -10,6 +11,17 @@ const SPY_MISSION = 6;
 const DEFAULT_SLOT_POLL_MS = 3000;
 const DEFAULT_SLOT_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_STALE_SPY_MS = 90 * 1000;
+const DEFAULT_WAIT_LOG_MS = 5000;
+
+let lastWaitStatusLogAt = 0;
+
+function logWaitStatus(message) {
+  const intervalMs = Number(process.env.SPY_SEND_WAIT_LOG_MS) || DEFAULT_WAIT_LOG_MS;
+  const now = Date.now();
+  if (now - lastWaitStatusLogAt < intervalMs) return;
+  lastWaitStatusLogAt = now;
+  log.info(message);
+}
 
 function sleep(ms) {
   return new Promise((resolveSleep) => setTimeout(resolveSleep, ms));
@@ -23,8 +35,12 @@ export function encodePlanetCoords(galaxy, system, position) {
   const p = Number(position);
   const g = Number(galaxy);
   const s = Number(system);
-  if (p >= 10) return g * 100_000 + s * 100 + p;
-  return g * 10_000 + s * 10 + p;
+  if (s >= 100) {
+    if (p >= 10) return g * 100_000 + s * 100 + p;
+    return g * 10_000 + s * 10 + p;
+  }
+  if (p >= 10) return g * 1_000 + s * 100 + p;
+  return g * 1_000 + s * 10 + p;
 }
 
 export function formatCoords(target) {
@@ -68,12 +84,20 @@ export function loadSpyTargets(filePath) {
   return targets;
 }
 
+async function ensurePlanetContext(client, cp) {
+  if (!cp) return;
+  await client.get(`game/overview?cp=${cp}`, {
+    headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
+  });
+}
+
 export function parseSpySendOptions(args) {
   const options = {
     file: "spy-targets.txt",
     coords: [],
     dryRun: false,
-    parallel: Number(process.env.SPY_SEND_PARALLEL) || 13,
+    cp: null,
+    parallel: Number(process.env.SPY_SEND_PARALLEL) || 25,
     reserveSlots: 0,
     slotPollMs: Number(process.env.SPY_SEND_SLOT_POLL_MS) || DEFAULT_SLOT_POLL_MS,
     slotTimeoutMs: Number(process.env.SPY_SEND_SLOT_TIMEOUT_MS) || DEFAULT_SLOT_TIMEOUT_MS,
@@ -86,6 +110,7 @@ export function parseSpySendOptions(args) {
     const arg = args[i];
     if (arg === "--file") options.file = args[++i];
     else if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--cp") options.cp = Number(args[++i]);
     else if (arg === "--parallel") options.parallel = Number(args[++i]);
     else if (arg === "--reserve-slots") options.reserveSlots = Number(args[++i]);
     else if (arg === "--slot-poll") options.slotPollMs = Number(args[++i]);
@@ -107,33 +132,6 @@ export function parseSpySendOptions(args) {
   }
 
   return options;
-}
-
-function parseActiveFleetActs(html) {
-  const marker = "activeFleetActs = ";
-  const start = html.indexOf(marker);
-  if (start < 0) return [];
-
-  const jsonStart = start + marker.length;
-  if (html[jsonStart] !== "[") return [];
-
-  let depth = 0;
-  for (let index = jsonStart; index < html.length; index++) {
-    const char = html[index];
-    if (char === "[") depth++;
-    else if (char === "]") {
-      depth--;
-      if (depth === 0) {
-        try {
-          return JSON.parse(html.slice(jsonStart, index + 1));
-        } catch {
-          return [];
-        }
-      }
-    }
-  }
-
-  return [];
 }
 
 function parseFleetSlotsFromHtml(html) {
@@ -187,15 +185,17 @@ function isSpyFleetInFlight(fleet) {
 }
 
 function countOwnSpiesInFlight(activeFleetActs) {
-  return activeFleetActs.filter(isSpyFleetInFlight).length;
+  const spyFleets = activeFleetActs.filter(isSpyFleetInFlight);
+  return mergeFleetLegs(spyFleets).length;
 }
 
 function isLoggedInHtml(html) {
   return /loggedIn\s*=\s*parseInt\(['"]1['"]\)/.test(html) || html.includes("game/logout");
 }
 
-export async function fetchFleetSlotStatus(client) {
-  const response = await client.get("game/fleetTable", {
+export async function fetchFleetSlotStatus(client, cp) {
+  const url = cp ? `game/fleetTable?cp=${cp}` : "game/fleetTable";
+  const response = await client.get(url, {
     headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
   });
   const html = String(response.data);
@@ -236,11 +236,12 @@ async function waitUntilReadyToSend(getClientFn, options) {
   while (true) {
     let status;
     try {
-      status = await fetchFleetSlotStatus(client);
+      status = await fetchFleetSlotStatus(client, options.cp);
     } catch (error) {
       if (error.code === "SESSION_EXPIRED") {
         log.warn("Session expirée — reconnexion automatique…");
         client = await refreshClient();
+        if (options.cp) await ensurePlanetContext(client, options.cp);
         stuckSince = Date.now();
         lastOwnSpies = -1;
         continue;
@@ -259,7 +260,17 @@ async function waitUntilReadyToSend(getClientFn, options) {
     if (!spyOk && status.ownSpies === lastOwnSpies) {
       if (Date.now() - stuckSince >= options.staleSpyMs) {
         log.warn(
-          `Compteur espion bloqué à ${status.ownSpies} — on continue après ${Math.round(options.staleSpyMs / 1000)}s`
+          `Compteur espion bloqué à ${status.ownSpies}/${options.parallel} — poursuite après ${Math.round(options.staleSpyMs / 1000)}s`
+        );
+        if (slotOk || !status.slotsKnown) {
+          return { client, status };
+        }
+      }
+    } else if (!spyOk && status.ownSpies > options.parallel) {
+      // Compteur au-dessus du plafond (souvent doublons aller/retour) : ne pas bloquer indéfiniment
+      if (Date.now() - stuckSince >= options.staleSpyMs) {
+        log.warn(
+          `Espions ${status.ownSpies}/${options.parallel} — poursuite forcée après ${Math.round(options.staleSpyMs / 1000)}s`
         );
         if (slotOk || !status.slotsKnown) {
           return { client, status };
@@ -280,11 +291,11 @@ async function waitUntilReadyToSend(getClientFn, options) {
       const fleetLabel = status.slotsKnown
         ? `flottes ${status.used}/${status.max}`
         : "flottes inconnues";
-      log.info(
+      logWaitStatus(
         `Attente retour espion — ${status.ownSpies}/${options.parallel} en vol, ${fleetLabel}`
       );
     } else {
-      log.info(
+      logWaitStatus(
         `Attente slot libre — ${status.used}/${status.max} flottes, ${Math.max(0, freeAfterReserve)} slot(s) utilisables`
       );
     }
@@ -331,10 +342,11 @@ async function loadPlanetIds(client, targets) {
   return planetIds;
 }
 
-export async function sendSpyMission(client, target, planetId) {
+export async function sendSpyMission(client, target, planetId, cp) {
   const planetCoords = encodePlanetCoords(target.galaxy, target.system, target.position);
+  const cpParam = cp ? `&cp=${cp}` : "";
   const response = await client.get(
-    `game/fleetAjax?ajax=1&mission=${SPY_MISSION}&planetID=${planetId}&planetCoords=${planetCoords}`,
+    `game/fleetAjax?ajax=1&mission=${SPY_MISSION}&planetID=${planetId}&planetCoords=${planetCoords}${cpParam}`,
     {
       headers: {
         Accept: "application/json, text/javascript, */*; q=0.01",
@@ -371,12 +383,17 @@ export async function sendSpyMissions(options = {}, client) {
   }
   targets = [...unique.values()];
 
+  if (!options.dryRun && options.cp) {
+    await ensurePlanetContext(http, options.cp);
+    log.info(`Départ espionnage — cp ${options.cp}`);
+  }
+
   const planetMeta = await loadPlanetIds(http, targets);
   const results = [];
   let slotStatus = null;
 
   if (!options.dryRun) {
-    slotStatus = await fetchFleetSlotStatus(http);
+    slotStatus = await fetchFleetSlotStatus(http, options.cp);
     log.info(
       `Flottes ${slotStatus.used}/${slotStatus.max} — ${slotStatus.ownSpies} espion(s) en vol — envoi max ${options.parallel} à la fois`
     );
@@ -419,7 +436,7 @@ export async function sendSpyMissions(options = {}, client) {
         const ready = await waitUntilReadyToSend(getHttp, options);
         http = ready.client;
         slotStatus = ready.status;
-        payload = await sendSpyMission(http, target, meta.planetId);
+        payload = await sendSpyMission(http, target, meta.planetId, options.cp);
         ok = Number(payload.code) === 600;
 
         if (ok || !isRetryableFleetError(payload)) {
@@ -455,6 +472,15 @@ export async function sendSpyMissions(options = {}, client) {
         username: meta.username,
       });
       log.warn(`Erreur ${coords}`, { error: error.message });
+    }
+
+    if (typeof options.onProgress === "function") {
+      options.onProgress({
+        done: results.length,
+        total: targets.length,
+        ok: results.filter((r) => r.ok).length,
+        coords,
+      });
     }
 
     if (!options.dryRun && index < targets.length - 1) {

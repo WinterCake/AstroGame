@@ -1,13 +1,16 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { SITE_URL, UNIVERSE } from "./config.js";
-import { getClient } from "./client.js";
+import { getClient, refreshClient } from "./client.js";
 import { derivePlayerActivity } from "./galaxy-activity.js";
+import { ensureDataDirs, paths } from "./paths.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("galaxy");
 
 const DELAY_MIN_MS = 250;
 const DELAY_MAX_MS = 2000;
+const DEFAULT_RETRIES = Number(process.env.GALAXY_SCRAPE_RETRIES) || 4;
+const RETRY_BASE_MS = Number(process.env.GALAXY_SCRAPE_RETRY_BASE_MS) || 5000;
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -110,22 +113,47 @@ export function groupEntriesByPlayer(entries) {
   return [...players.values()].sort((a, b) => a.username.localeCompare(b.username));
 }
 
-export async function fetchGalaxySystem(client, galaxy, system) {
-  const response = await client.post("game/galaxy/ajax", `galaxy=${galaxy}&system=${system}`, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json, text/javascript, */*; q=0.01",
-      Referer: `${SITE_URL}game/galaxy`,
-      "X-Requested-With": "XMLHttpRequest",
-    },
-    transformResponse: [(data) => data],
-  });
+function previewResponse(raw) {
+  return String(raw ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 160);
+}
+
+function isSessionLikeResponse(raw) {
+  const text = String(raw ?? "");
+  return (
+    /session|expir|login|connexion/i.test(text) &&
+    (text.includes("<html") || text.includes("loginAjax") || text.includes("game/logout") === false)
+  );
+}
+
+export function isRetryableGalaxyError(error, raw = "") {
+  const message = String(error?.message ?? error ?? "");
+  if (/session|expir|invalid|JSON|timeout|ECONNRESET|429|503|502|rate|limit|captcha|too many/i.test(message)) {
+    return true;
+  }
+  const body = String(raw ?? "");
+  if (body && !body.trim().startsWith("{")) return true;
+  return isSessionLikeResponse(body);
+}
+
+function parseGalaxyResponse(raw, galaxy, system) {
+  const body = String(raw ?? "").trim();
+  if (!body.startsWith("{")) {
+    if (isSessionLikeResponse(body)) {
+      throw new Error(`Session expirée ou page HTML reçue pour ${galaxy}:${system}`);
+    }
+    throw new Error(
+      `Réponse galaxie invalide pour ${galaxy}:${system} — ${previewResponse(body) || "corps vide"}`
+    );
+  }
 
   let payload;
   try {
-    payload = JSON.parse(response.data);
+    payload = JSON.parse(body);
   } catch {
-    throw new Error(`Réponse galaxie invalide pour ${galaxy}:${system}`);
+    throw new Error(`JSON invalide pour ${galaxy}:${system} — ${previewResponse(body)}`);
   }
 
   if (!payload.status) {
@@ -138,6 +166,64 @@ export async function fetchGalaxySystem(client, galaxy, system) {
     planetCount: payload.planetCountNumber ?? 0,
     entries: parseSystemEntries(payload.galaxy, payload.system, payload.existsPlanets),
   };
+}
+
+export async function fetchGalaxySystem(client, galaxy, system) {
+  const response = await client.post("game/galaxy/ajax", `galaxy=${galaxy}&system=${system}`, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+      Accept: "application/json, text/javascript, */*; q=0.01",
+      Referer: `${SITE_URL}game/galaxy?galaxy=${galaxy}&system=${system}`,
+      "X-Requested-With": "XMLHttpRequest",
+    },
+    transformResponse: [(data) => data],
+  });
+
+  return parseGalaxyResponse(response.data, galaxy, system);
+}
+
+async function fetchGalaxySystemWithRetry(galaxy, system, options) {
+  let lastError = null;
+  let lastRaw = "";
+
+  for (let attempt = 1; attempt <= options.retries; attempt++) {
+    try {
+      const client = await getClient();
+      const response = await client.post("game/galaxy/ajax", `galaxy=${galaxy}&system=${system}`, {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Accept: "application/json, text/javascript, */*; q=0.01",
+          Referer: `${SITE_URL}game/galaxy?galaxy=${galaxy}&system=${system}`,
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        transformResponse: [(data) => data],
+      });
+      lastRaw = response.data;
+      return parseGalaxyResponse(response.data, galaxy, system);
+    } catch (error) {
+      lastError = error;
+      const retryable = isRetryableGalaxyError(error, lastRaw);
+      if (!retryable || attempt >= options.retries) {
+        throw error;
+      }
+
+      const delay = options.retryBaseMs * attempt;
+      log.warn(`Retry ${galaxy}:${system}`, {
+        attempt,
+        max: options.retries,
+        delayMs: delay,
+        message: error.message,
+      });
+
+      if (/session|expir|HTML/i.test(error.message)) {
+        await refreshClient();
+      }
+
+      await sleep(delay);
+    }
+  }
+
+  throw lastError ?? new Error(`Échec galaxie ${galaxy}:${system}`);
 }
 
 export async function discoverGalaxyLimits(client) {
@@ -170,6 +256,10 @@ function countStoredSystems(entries) {
   return new Set(entries.map((entry) => systemKey(entry.galaxy, entry.system))).size;
 }
 
+function storedSystemKeys(entries) {
+  return new Set(entries.map((entry) => systemKey(entry.galaxy, entry.system)));
+}
+
 function loadExistingPayload(output) {
   if (!existsSync(output)) return null;
 
@@ -195,20 +285,24 @@ function replaceSystemEntries(entries, galaxy, system, newEntries) {
 export function parseGalaxyScrapeOptions(args) {
   const options = {
     all: false,
-    merge: false,
+    refresh: false,
     coords: null,
     galaxy: null,
     system: null,
-    output: "galaxy-players.json",
+    output: null,
     delayMinMs: Number(process.env.GALAXY_SCRAPE_DELAY_MIN_MS) || DELAY_MIN_MS,
     delayMaxMs: Number(process.env.GALAXY_SCRAPE_DELAY_MAX_MS) || DELAY_MAX_MS,
+    retries: DEFAULT_RETRIES,
+    retryBaseMs: RETRY_BASE_MS,
   };
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
     if (arg === "--all") options.all = true;
-    else if (arg === "--merge") options.merge = true;
-    else if (arg === "--system") options.coords = parseCoordsArg(args[++i]);
+    else if (arg === "--refresh") options.refresh = true;
+    else if (arg === "--merge" || arg === "--resume") {
+      log.warn(`Option ${arg} ignorée — fusion et reprise sont activées par défaut`);
+    } else if (arg === "--system") options.coords = parseCoordsArg(args[++i]);
     else if (arg === "--galaxy") options.galaxy = parseRangeArg(args[++i], null);
     else if (arg === "--systems") options.system = parseRangeArg(args[++i], null);
     else if (arg === "--output") options.output = args[++i];
@@ -217,7 +311,7 @@ export function parseGalaxyScrapeOptions(args) {
   return options;
 }
 
-function buildGalaxyPayload(entries, { limits, targets, scanned, lastTarget, complete, error, merge }) {
+function buildGalaxyPayload(entries, { limits, targets, scanned, skipped, lastTarget, complete, error, refresh }) {
   const players = groupEntriesByPlayer(entries);
   const meta = {
     universe: UNIVERSE,
@@ -226,18 +320,12 @@ function buildGalaxyPayload(entries, { limits, targets, scanned, lastTarget, com
     planetEntries: entries.length,
     uniquePlayers: players.length,
     systemsStored: countStoredSystems(entries),
+    systemsInRun: targets.length,
+    systemsScannedThisRun: scanned,
+    systemsSkippedExisting: skipped ?? 0,
+    runComplete: complete,
+    refresh: Boolean(refresh),
   };
-
-  if (merge) {
-    meta.merged = true;
-    meta.systemsInRun = targets.length;
-    meta.systemsScannedThisRun = scanned;
-    meta.runComplete = complete;
-  } else {
-    meta.systemsTotal = targets.length;
-    meta.systemsScanned = scanned;
-    meta.complete = complete;
-  }
 
   if (lastTarget) {
     meta.lastScanned = `${lastTarget.galaxy}:${lastTarget.system}`;
@@ -254,9 +342,13 @@ function saveGalaxyPayload(output, payload) {
 }
 
 export async function scrapeGalaxy(options = {}, client) {
+  if (!options.output) {
+    ensureDataDirs();
+    options.output = paths.galaxy.defaultScrape();
+  }
   const http = client ?? (await getClient());
   const limits = await discoverGalaxyLimits(http);
-  const targets = [];
+  let targets = [];
 
   if (options.coords) {
     targets.push(options.coords);
@@ -276,27 +368,60 @@ export async function scrapeGalaxy(options = {}, client) {
     }
   }
 
-  let entries = [];
-  if (options.merge) {
-    const existing = loadExistingPayload(options.output);
-    if (existing) {
+  const existing = loadExistingPayload(options.output);
+  const requestedTargets = targets.length;
+  let entries = existing?.entries ?? [];
+  let skippedExisting = 0;
+
+  if (existing) {
+    if (options.refresh) {
       entries = prepareMergedEntries(existing.entries, targets);
-      log.info(`Merge activé`, {
+      log.info(`Fichier existant — re-scan forcé de la plage demandée`, {
         output: options.output,
         keptEntries: entries.length,
         rescannedSystems: targets.length,
         previousEntries: existing.entries.length,
       });
     } else {
-      log.info(`Merge activé — aucun fichier existant, création`, { output: options.output });
+      const done = storedSystemKeys(entries);
+      const pending = targets.filter((target) => !done.has(systemKey(target.galaxy, target.system)));
+      skippedExisting = targets.length - pending.length;
+      targets = pending;
+      log.info(`Fichier existant — fusion + reprise automatiques`, {
+        output: options.output,
+        skippedSystems: skippedExisting,
+        pendingSystems: targets.length,
+        systemsStored: countStoredSystems(entries),
+        previousEntries: existing.entries.length,
+      });
     }
+  }
+
+  if (!targets.length) {
+    log.info(`Rien à scanner — tous les systèmes demandés sont déjà présents`, {
+      output: options.output,
+      systemsStored: countStoredSystems(entries),
+    });
+    return buildGalaxyPayload(entries, {
+      limits,
+      targets: [],
+      scanned: 0,
+      skipped: skippedExisting,
+      lastTarget: existing?.meta?.lastScanned
+        ? parseCoordsArg(existing.meta.lastScanned)
+        : null,
+      complete: true,
+      refresh: options.refresh,
+    });
   }
 
   log.info(`Scan galaxie démarré`, {
     universe: UNIVERSE,
     limits,
-    systems: targets.length,
-    merge: options.merge,
+    requestedSystems: requestedTargets,
+    pendingSystems: targets.length,
+    refresh: options.refresh,
+    retries: options.retries,
     delayMs: `${options.delayMinMs}-${options.delayMaxMs} (aléatoire)`,
   });
 
@@ -310,17 +435,18 @@ export async function scrapeGalaxy(options = {}, client) {
         limits,
         targets,
         scanned,
+        skipped: skippedExisting,
         lastTarget,
         complete,
         error,
-        merge: options.merge,
+        refresh: options.refresh,
       })
     );
   };
 
   try {
     for (const target of targets) {
-      const result = await fetchGalaxySystem(http, target.galaxy, target.system);
+      const result = await fetchGalaxySystemWithRetry(target.galaxy, target.system, options);
       entries = replaceSystemEntries(entries, target.galaxy, target.system, result.entries);
       scanned++;
       lastTarget = target;
@@ -336,11 +462,12 @@ export async function scrapeGalaxy(options = {}, client) {
     }
   } catch (error) {
     persist(false, error.message);
-    log.warn(`Scan interrompu — sauvegarde partielle`, {
+    log.warn(`Scan interrompu — sauvegarde partielle (relance la même commande pour reprendre)`, {
       output: options.output,
       scanned,
       entries: entries.length,
       lastScanned: lastTarget ? `${lastTarget.galaxy}:${lastTarget.system}` : null,
+      error: error.message,
     });
     throw error;
   }
@@ -355,8 +482,9 @@ export async function scrapeGalaxy(options = {}, client) {
     limits,
     targets,
     scanned,
+    skipped: skippedExisting,
     lastTarget,
     complete: true,
-    merge: options.merge,
+    refresh: options.refresh,
   });
 }

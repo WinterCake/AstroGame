@@ -18,15 +18,28 @@
     "attack-loot": "node src/index.js attack-loot",
     "attacks-import": "node scripts/push-attacks-to-extension.mjs",
     "attacks-sync": "node scripts/write-attacks-chrome-storage.mjs",
-    "attacks-today": "node scripts/export-attacks-today.mjs"
+    "attacks-today": "node scripts/export-attacks-today.mjs",
+    "scan-empire": "node scripts/scan-empire-resources.mjs",
+    "migrate-data": "node scripts/migrate-data-layout.mjs",
+    "dev:kill": "node scripts/kill-ui-port.mjs",
+    "predev": "node scripts/kill-ui-port.mjs",
+    "dev": "concurrently --handle-input --kill-others-on-fail -n api,web -c blue,green \"node server/index.js\" \"npm run dev --prefix web\"",
+    "dev:api": "node server/index.js",
+    "dev:web": "npm run dev --prefix web",
+    "build:web": "npm run build --prefix web",
+    "start": "node server/index.js"
   },
   "dependencies": {
+    "@fastify/cors": "^11.0.1",
+    "@fastify/static": "^8.2.0",
     "axios": "^1.9.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
-    "exceljs": "^4.4.0"
+    "exceljs": "^4.4.0",
+    "fastify": "^5.3.3"
   },
   "devDependencies": {
-    "classic-level": "^3.0.0"
+    "classic-level": "^3.0.0",
+    "concurrently": "^9.1.2"
   }
 }

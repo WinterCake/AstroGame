@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import ExcelJS from "exceljs";
 import { getClient } from "./client.js";
+import { paths } from "./paths.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("spy");
@@ -43,7 +44,7 @@ export function isGrosButinSansDefense(report) {
   return isSansDefense(report) && (Number(report.loot) || 0) >= 500_000_000;
 }
 
-function isReportToday(report) {
+export function isReportToday(report) {
   if (!report.timestamp) return false;
   const date = new Date(report.timestamp * 1000);
   const now = new Date();
@@ -52,6 +53,14 @@ function isReportToday(report) {
     date.getMonth() === now.getMonth() &&
     date.getFullYear() === now.getFullYear()
   );
+}
+
+export function getSpiedTodayCoords(reports) {
+  const coords = new Set();
+  for (const report of reports ?? []) {
+    if (isReportToday(report)) coords.add(report.coords);
+  }
+  return coords;
 }
 
 export function filterSpyReports(reports, filter) {
@@ -209,7 +218,7 @@ export function parseSpyScrapeOptions(args) {
     page: null,
     maxPages: null,
     output: null,
-    excel: "spy-reports.xlsx",
+    excel: paths.spy.reportsExcel(),
     noExcel: false,
     filter: null,
   };
@@ -222,7 +231,7 @@ export function parseSpyScrapeOptions(args) {
     else if (arg === "--filter") options.filter = args[++i];
     else if (arg === "--excel") {
       const next = args[i + 1];
-      options.excel = next && !next.startsWith("-") ? args[++i] : "spy-reports.xlsx";
+      options.excel = next && !next.startsWith("-") ? args[++i] : paths.spy.reportsExcel();
     } else if (arg === "--no-excel") options.noExcel = true;
     else if (arg === "--all") options.all = true;
   }
