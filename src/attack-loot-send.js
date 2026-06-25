@@ -15,6 +15,8 @@ import {
 } from "./fleet-active.js";
 import { formatCoords, loadSpyTargets, parseCoordLine } from "./spy-send.js";
 import { createLogger } from "./logger.js";
+import { getCredentials } from "./config.js";
+import { getPlayerAttackCoordsTodayFromCombatReports } from "./combat-reports.js";
 import {
   getAttackedTodayCoords,
   mergeAttackRecords,
@@ -204,11 +206,28 @@ export function parseAttackLootOptions(args) {
 }
 
 function loadSkipCoordsSet(skipAttackedFile) {
-  if (!skipAttackedFile) return new Set();
-  const filePath = resolve(skipAttackedFile);
-  if (!existsSync(filePath)) return new Set();
-  const payload = JSON.parse(readFileSync(filePath, "utf8"));
-  return getAttackedTodayCoords(payload);
+  const coords = new Set();
+  const filePath = skipAttackedFile ? resolve(skipAttackedFile) : paths.attacks.import();
+
+  if (existsSync(filePath)) {
+    const payload = JSON.parse(readFileSync(filePath, "utf8"));
+    for (const coord of getAttackedTodayCoords(payload)) coords.add(coord);
+  }
+
+  const combatPath = paths.combat.reports();
+  if (existsSync(combatPath)) {
+    try {
+      const combat = JSON.parse(readFileSync(combatPath, "utf8"));
+      const { username } = getCredentials();
+      for (const coord of getPlayerAttackCoordsTodayFromCombatReports(combat.reports, username)) {
+        coords.add(coord);
+      }
+    } catch {
+      /* ignore invalid combat archive */
+    }
+  }
+
+  return coords;
 }
 
 function loadSpyMetaMap(spyJsonPath) {

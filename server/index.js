@@ -1,11 +1,12 @@
 import "dotenv/config";
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import fastifyStatic from "@fastify/static";
 import { loginFromEnv } from "../src/auth.js";
+import { getCredentials } from "../src/config.js";
 import { Session } from "../src/session.js";
 import { getBuildings } from "../src/buildings.js";
 import { listEmpirePlanets, scanEmpireResources, dedupePlanets, dedupePlanetsByCoords } from "../src/empire.js";
@@ -31,15 +32,36 @@ import {
 } from "../src/attacks-history.js";
 import { getClient, refreshClient } from "../src/client.js";
 import { ensureDataDirs, paths } from "../src/paths.js";
-import { fetchFleetSlotStatus, parseCoordLine, sendSpyMissions } from "../src/spy-send.js";
+import {
+  fetchFleetSlotStatus,
+  normalizeCoordString,
+  parseCoordLine,
+  sendSpyMissions,
+  summarizeSpySendResults,
+} from "../src/spy-send.js";
 import { fetchActiveFleets } from "../src/fleet-active.js";
 import {
+  applySpyHiddenFilter,
   filterSpyReports,
+  getAllSpiedCoords,
   getSpiedTodayCoords,
   isReportToday,
+  mergeSpyReports,
+  recordSpiedSendSuccess,
+  removeSpyReports,
   scrapeSpyReports,
   writeSpyReportsExcel,
 } from "../src/spy-reports.js";
+import {
+  applyCombatHiddenFilter,
+  ensureCombatReportDetails,
+  filterCombatReports,
+  finalizeCombatReport,
+  mergeCombatReports,
+  removeCombatReports,
+  scrapeCombatReports,
+  getPlayerAttackCoordsTodayFromCombatReports,
+} from "../src/combat-reports.js";
 import { createJob, getJob, runJob, serializeJob } from "./jobs.js";
 
 const PORT = Number(process.env.ASTROGAME_UI_PORT) || 3847;
@@ -57,12 +79,37 @@ function loadJson(path) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
+function isQueryTruthy(value) {
+  return value === true || value === "true" || value === 1 || value === "1";
+}
+
+/** Tous les rapports espionnage connus (loot-targets + reports.json), sans filtre masqué. */
+function loadRawSpyArchiveReports() {
+  const loot = loadJson(paths.spy.lootTargets());
+  const reports = loadJson(paths.spy.reports());
+  const byCoords = new Map();
+  for (const report of [...(reports?.reports ?? []), ...(loot?.reports ?? [])]) {
+    if (!report?.coords) continue;
+    byCoords.set(normalizeCoordString(report.coords), report);
+  }
+  return [...byCoords.values()];
+}
+
 function getSpyEnrichmentContext() {
   const attacked = loadJson(paths.attacks.import());
   const attackedTodaySet = getAttackedTodayCoords(attacked);
+
+  const combat = loadJson(paths.combat.reports());
+  const { username } = getCredentials();
+  if (combat?.reports?.length && username) {
+    for (const coord of getPlayerAttackCoordsTodayFromCombatReports(combat.reports, username)) {
+      attackedTodaySet.add(coord);
+    }
+  }
+
   const galaxy = loadJson(paths.galaxy.global());
   const galaxyByCoord = new Map((galaxy?.entries ?? []).map((e) => [e.coords, e]));
-  return { attackedTodaySet, attacksTodayCount: countAttacksToday(attacked), galaxyByCoord };
+  return { attackedTodaySet, attacksTodayCount: attackedTodaySet.size, galaxyByCoord };
 }
 
 function enrichSpyReport(report, { attackedTodaySet, galaxyByCoord }) {
@@ -82,19 +129,56 @@ function enrichSpyReport(report, { attackedTodaySet, galaxyByCoord }) {
 }
 
 function loadSpyReportsData() {
-  return loadJson(paths.spy.lootTargets()) ?? loadJson(paths.spy.reports()) ?? { reports: [], meta: {} };
+  const data = loadJson(paths.spy.lootTargets()) ?? loadJson(paths.spy.reports()) ?? { reports: [], meta: {} };
+  const hidden = data.meta?.hiddenCoords;
+  if (hidden?.length) {
+    return {
+      ...data,
+      reports: applySpyHiddenFilter(data.reports, hidden),
+    };
+  }
+  return data;
+}
+
+function saveSpyReportsData(data) {
+  writeFileSync(paths.spy.lootTargets(), JSON.stringify(data, null, 2), "utf8");
+}
+
+function loadCombatReportsData() {
+  const data = loadJson(paths.combat.reports()) ?? { reports: [], meta: {} };
+  const hidden = data.meta?.hiddenMessageIds;
+  if (hidden?.length) {
+    return {
+      ...data,
+      reports: applyCombatHiddenFilter(data.reports, hidden),
+    };
+  }
+  return data;
+}
+
+function saveCombatReportsData(data) {
+  writeFileSync(paths.combat.reports(), JSON.stringify(data, null, 2), "utf8");
 }
 
 function loadSpiedTodayContext() {
   const data = loadSpyReportsData();
-  const spiedTodaySet = getSpiedTodayCoords(data.reports);
-  return { spiedTodaySet, spiedTodayCount: spiedTodaySet.size };
+  const spiedLogToday = getAttackedTodayCoords(loadJson(paths.spy.spiedLog()) ?? emptyAttacksStore());
+  const spiedTodaySet = getSpiedTodayCoords(data.reports, spiedLogToday);
+  const allSpiedSet = getAllSpiedCoords(loadRawSpyArchiveReports());
+  return {
+    spiedTodaySet,
+    spiedTodayCount: spiedTodaySet.size,
+    allSpiedSet,
+    allSpiedCount: allSpiedSet.size,
+  };
 }
 
-function enrichGalaxyEntry(entry, { spiedTodaySet }) {
+function enrichGalaxyEntry(entry, { spiedTodaySet, allSpiedSet }) {
+  const coords = normalizeCoordString(entry.coords);
   return {
     ...entry,
-    spiedToday: spiedTodaySet.has(entry.coords),
+    spiedToday: spiedTodaySet.has(coords),
+    everSpied: allSpiedSet?.has(coords) ?? false,
   };
 }
 
@@ -265,8 +349,14 @@ app.get("/api/galaxy/entries", async (req) => {
   const spyCtx = loadSpiedTodayContext();
   let filtered = filterGalaxyEntries(data.entries, req.query);
 
-  if (req.query.notSpiedToday === "true") {
-    filtered = filtered.filter((e) => !spyCtx.spiedTodaySet.has(e.coords));
+  const excludeSpiedToday =
+    isQueryTruthy(req.query.notSpiedToday) || isQueryTruthy(req.query.neverSpied);
+  if (excludeSpiedToday) {
+    filtered = filtered.filter((e) => !spyCtx.spiedTodaySet.has(normalizeCoordString(e.coords)));
+  }
+
+  if (isQueryTruthy(req.query.neverSpied)) {
+    filtered = filtered.filter((e) => !spyCtx.allSpiedSet.has(normalizeCoordString(e.coords)));
   }
 
   const enriched = filtered.map((e) => enrichGalaxyEntry(e, spyCtx));
@@ -287,6 +377,7 @@ app.get("/api/galaxy/entries", async (req) => {
     pageSize,
     totalPages: Math.ceil(sorted.length / pageSize),
     spiedToday: spyCtx.spiedTodayCount,
+    allSpied: spyCtx.allSpiedCount,
   };
 });
 
@@ -389,7 +480,15 @@ app.get("/api/spy/reports", async (req) => {
     reports = reports.filter((r) => !isReportToday(r));
   }
 
-  const enriched = reports.map((r) => enrichSpyReport(r, ctx));
+  let enriched = reports.map((r) => enrichSpyReport(r, ctx));
+
+  if (req.query.inactive === "true") {
+    enriched = enriched.filter((r) => r.inactive);
+  } else if (req.query.inactive === "attackable") {
+    enriched = enriched.filter((r) => r.isAttackableInactive);
+  } else if (req.query.inactive === "false") {
+    enriched = enriched.filter((r) => r.inactive === false && !r.onVacation);
+  }
 
   const sorted = sortRows(enriched, req.query.sortBy, req.query.sortDir, {
     loot: (r) => r.loot ?? 0,
@@ -429,6 +528,30 @@ app.get("/api/spy/reports/detail", async (req, reply) => {
   return { report: enrichSpyReport(report, getSpyEnrichmentContext()) };
 });
 
+app.patch("/api/spy/reports", async (req, reply) => {
+  const body = req.body ?? {};
+  const coords = Array.isArray(body.remove) ? body.remove : [];
+  if (!coords.length) {
+    reply.code(400);
+    return { error: "remove[] requis (coords G:S:P)" };
+  }
+
+  const current = loadJson(paths.spy.lootTargets()) ?? loadJson(paths.spy.reports()) ?? { reports: [], meta: {} };
+  const { data, removed } = removeSpyReports(current, coords);
+  if (!removed) {
+    reply.code(400);
+    return { error: "Aucune coordonnée valide" };
+  }
+
+  saveSpyReportsData(data);
+  return {
+    ok: true,
+    removed,
+    total: data.reports.length,
+    hiddenCount: data.meta?.hiddenCoords?.length ?? 0,
+  };
+});
+
 app.post("/api/spy/reports/sync", async (req) => {
   const body = req.body ?? {};
   const job = createJob("spy-sync");
@@ -437,23 +560,48 @@ app.post("/api/spy/reports/sync", async (req) => {
     const client = await getClient();
     const output = body.output ?? paths.spy.reports();
     const lootOutput = body.lootOutput ?? paths.spy.lootTargets();
+    const existing = loadJson(paths.spy.lootTargets()) ?? loadJson(paths.spy.reports()) ?? { meta: {}, reports: [] };
+    const hiddenCoords = existing.meta?.hiddenCoords ?? [];
+
     const result = await scrapeSpyReports(
       {
         all: body.all !== false,
         maxPages: body.maxPages,
         output,
+        existingReports: existing.reports ?? [],
       },
       client
     );
 
+    const mergedReports = mergeSpyReports(existing.reports ?? [], result.reports);
+    const reports = hiddenCoords.length
+      ? applySpyHiddenFilter(mergedReports, hiddenCoords)
+      : mergedReports;
+
+    const payload = {
+      ...result,
+      reports,
+      meta: {
+        ...existing.meta,
+        ...result.meta,
+        scrapedAt: new Date().toISOString(),
+        hiddenCoords,
+        totalReports: reports.length,
+      },
+    };
+
     if (!body.noExcel) {
-      await writeSpyReportsExcel(result, paths.spy.reportsExcel());
+      await writeSpyReportsExcel(payload, paths.spy.reportsExcel());
     }
 
-    const { writeFileSync } = await import("node:fs");
-    writeFileSync(lootOutput, JSON.stringify(result, null, 2), "utf8");
-    onProgress({ totalReports: result.meta.totalReports, message: "Sync terminée" });
-    return result;
+    writeFileSync(lootOutput, JSON.stringify(payload, null, 2), "utf8");
+    onProgress({
+      totalReports: payload.meta.totalReports,
+      newReports: payload.meta.newReports ?? 0,
+      skippedReports: payload.meta.skippedReports ?? 0,
+      message: "Sync terminée",
+    });
+    return payload;
   }).catch(() => {});
 
   return { jobId: job.id };
@@ -487,12 +635,167 @@ app.post("/api/spy/send", async (req, reply) => {
       },
       client
     );
+    const stats = summarizeSpySendResults(result.results);
+    const okCoords = result.results.filter((r) => r.ok && r.coords).map((r) => r.coords);
+    if (okCoords.length && !body.dryRun) {
+      recordSpiedSendSuccess(okCoords);
+    }
     onProgress({
       done: result.results.length,
       total: coords.length,
-      ok: result.results.filter((r) => r.ok).length,
+      ...stats,
     });
     return result;
+  }).catch(() => {});
+
+  return { jobId: job.id };
+});
+
+// --- Combat reports ---
+
+app.get("/api/combat/reports", async (req) => {
+  const data = loadCombatReportsData();
+  let reports = data.reports ?? [];
+
+  reports = filterCombatReports(reports, {
+    search: req.query.search,
+    result: req.query.result,
+    coords: req.query.coords,
+    today: req.query.today,
+    minLoot: req.query.minLoot,
+  });
+
+  const sorted = sortRows(reports, req.query.sortBy, req.query.sortDir, {
+    loot: (r) => r.loot ?? 0,
+    timestamp: (r) => Number(r.timestamp) || 0,
+    date: (r) => Number(r.timestamp) || 0,
+    coords: (r) => r.coords ?? "",
+    result: (r) => r.result ?? "",
+  });
+
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const pageSize = Math.min(500, Math.max(1, Number(req.query.pageSize) || 100));
+  const start = (page - 1) * pageSize;
+
+  return {
+    meta: data.meta,
+    reports: sorted.slice(start, start + pageSize).map((report) => {
+      const finalized = finalizeCombatReport(report);
+      return {
+        ...finalized,
+        htmlBody: undefined,
+        fullHtml: undefined,
+      };
+    }),
+    total: sorted.length,
+    page,
+    pageSize,
+  };
+});
+
+app.get("/api/combat/reports/detail", async (req, reply) => {
+  const messageId = String(req.query.messageId ?? "").trim();
+  if (!messageId) {
+    reply.code(400);
+    return { error: "messageId requis" };
+  }
+
+  const data = loadJson(paths.combat.reports()) ?? { reports: [], meta: {} };
+  const index = (data.reports ?? []).findIndex((r) => String(r.messageId) === messageId);
+  if (index < 0) {
+    reply.code(404);
+    return { error: "Rapport introuvable" };
+  }
+
+  let report = data.reports[index];
+  if (!report.fullHtml && report.raportHash) {
+    try {
+      const client = await getClient();
+      report = await ensureCombatReportDetails(report, client);
+      data.reports[index] = report;
+      saveCombatReportsData(data);
+    } catch (error) {
+      reply.code(502);
+      return { error: `Impossible de charger le rapport complet: ${error.message}` };
+    }
+  }
+
+  return { report: finalizeCombatReport(report) };
+});
+
+app.patch("/api/combat/reports", async (req, reply) => {
+  const body = req.body ?? {};
+  const messageIds = Array.isArray(body.remove) ? body.remove.map(String) : [];
+  if (!messageIds.length) {
+    reply.code(400);
+    return { error: "remove[] requis (messageId)" };
+  }
+
+  const current = loadJson(paths.combat.reports()) ?? { reports: [], meta: {} };
+  const { data, removed } = removeCombatReports(current, messageIds);
+  if (!removed) {
+    reply.code(400);
+    return { error: "Aucun messageId valide" };
+  }
+
+  saveCombatReportsData(data);
+  return { ok: true, removed, total: data.reports.length };
+});
+
+app.post("/api/combat/reports/sync", async (req) => {
+  const body = req.body ?? {};
+  const job = createJob("combat-sync");
+
+  runJob(job.id, async (onProgress) => {
+    const client = await getClient();
+    const output = body.output ?? paths.combat.reports();
+    const existing = loadJson(output) ?? { meta: {}, reports: [] };
+    const hiddenIds = existing.meta?.hiddenMessageIds ?? [];
+
+    const scraped = await scrapeCombatReports(
+      {
+        all: body.all !== false,
+        maxPages: body.maxPages,
+        existingReports: existing.reports ?? [],
+      },
+      client
+    );
+
+    const merged = mergeCombatReports(existing.reports, scraped.reports);
+    const reports = applyCombatHiddenFilter(merged, hiddenIds);
+    const payload = {
+      meta: {
+        ...scraped.meta,
+        ...existing.meta,
+        scrapedAt: new Date().toISOString(),
+        totalReports: reports.length,
+        hiddenMessageIds: hiddenIds,
+        lastSyncNew: scraped.meta?.newReports ?? scraped.reports.length,
+        lastSyncFetched: scraped.meta?.detailsFetched ?? 0,
+        lastSyncSkipped: scraped.meta?.detailsSkipped ?? 0,
+      },
+      reports,
+    };
+
+    saveCombatReportsData(payload);
+
+    const { username } = getCredentials();
+    const attackCoords = getPlayerAttackCoordsTodayFromCombatReports(reports, username);
+    if (attackCoords.size) {
+      const importStore = loadAttacksStore();
+      saveAttacksStore(
+        mergeAttackRecords(importStore, [...attackCoords], { source: "combat-sync" })
+      );
+    }
+
+    onProgress({
+      totalReports: reports.length,
+      newReports: scraped.reports.length,
+      detailsFetched: scraped.meta?.detailsFetched ?? 0,
+      detailsSkipped: scraped.meta?.detailsSkipped ?? 0,
+      message: "Sync terminée",
+    });
+    return payload;
   }).catch(() => {});
 
   return { jobId: job.id };

@@ -3,11 +3,14 @@ import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import { getClient, refreshClient } from "./client.js";
 import { mergeFleetLegs, parseActiveFleetActs } from "./fleet-active.js";
-import { fetchGalaxySystem } from "./galaxy.js";
+import { fetchGalaxySystem, removeGalaxyEntriesByCoords } from "./galaxy.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("spy-send");
 const SPY_MISSION = 6;
+const SPY_OK_CODE = 600;
+const SPY_COORDS_CHANGED_CODE = 601;
+const SPY_WEAK_PLAYER_CODE = 603;
 const DEFAULT_SLOT_POLL_MS = 3000;
 const DEFAULT_SLOT_TIMEOUT_MS = 15 * 60 * 1000;
 const DEFAULT_STALE_SPY_MS = 90 * 1000;
@@ -45,6 +48,14 @@ export function encodePlanetCoords(galaxy, system, position) {
 
 export function formatCoords(target) {
   return `${target.galaxy}:${target.system}:${target.position}`;
+}
+
+/** Coordonnées canoniques G:S:P pour comparaisons (Sets, filtres). */
+export function normalizeCoordString(coords) {
+  if (coords == null) return "";
+  const parsed = typeof coords === "string" ? parseCoordLine(coords) : coords;
+  if (!parsed?.galaxy) return String(coords).trim();
+  return formatCoords(parsed);
 }
 
 export function parseCoordLine(line) {
@@ -308,6 +319,49 @@ function systemKey(galaxy, system) {
   return `${galaxy}:${system}`;
 }
 
+const PLANET_GONE_MESSAGE = "Planète introuvable (colonie vide ou supprimée)";
+
+export function summarizeSpySendResults(results) {
+  const ok = results.filter((result) => result.ok).length;
+  const planetGone = results.filter((result) => result.reason === "planet_gone").length;
+  const weakPlayer = results.filter((result) => result.reason === "weak_player").length;
+  const coordsChanged = results.filter(
+    (result) => result.reason === "coords_changed" || Number(result.code) === SPY_COORDS_CHANGED_CODE
+  ).length;
+  const failed = results.length - ok;
+  const otherFailed = Math.max(0, failed - planetGone - weakPlayer - coordsChanged);
+
+  return {
+    total: results.length,
+    ok,
+    failed,
+    planetGone,
+    weakPlayer,
+    coordsChanged,
+    otherFailed,
+    skipped: planetGone,
+  };
+}
+
+function spyFailureReason(payload) {
+  const code = Number(payload?.code);
+  if (code === SPY_WEAK_PLAYER_CODE) return "weak_player";
+  if (code === SPY_COORDS_CHANGED_CODE) return "coords_changed";
+  return "spy_rejected";
+}
+
+function purgeGalaxyCoords(coordsList, reason) {
+  if (!coordsList.length) return { removed: 0, coords: [] };
+  const removal = removeGalaxyEntriesByCoords(coordsList);
+  if (removal.removed) {
+    log.warn(`${removal.removed} planète(s) retirée(s) du cache galaxie`, {
+      reason,
+      coords: removal.coords,
+    });
+  }
+  return removal;
+}
+
 async function loadPlanetIds(client, targets) {
   const bySystem = new Map();
 
@@ -318,17 +372,31 @@ async function loadPlanetIds(client, targets) {
   }
 
   const planetIds = new Map();
+  const missingCoords = [];
 
   for (const [key, systemTargets] of bySystem) {
     const [galaxy, system] = key.split(":").map(Number);
     log.info(`Galaxie ${key}`, { positions: systemTargets.length });
-    const result = await fetchGalaxySystem(client, galaxy, system);
+
+    let result;
+    try {
+      result = await fetchGalaxySystem(client, galaxy, system);
+    } catch (error) {
+      log.warn(`Galaxie ${key} inaccessible — skip des cibles`, { error: error.message });
+      for (const target of systemTargets) {
+        const coords = formatCoords(target);
+        planetIds.set(coords, null);
+        missingCoords.push(coords);
+      }
+      continue;
+    }
 
     for (const target of systemTargets) {
       const coords = formatCoords(target);
       const entry = result.entries.find((item) => item.position === target.position);
       if (!entry?.planetId) {
         planetIds.set(coords, null);
+        missingCoords.push(coords);
         continue;
       }
       planetIds.set(coords, {
@@ -339,7 +407,7 @@ async function loadPlanetIds(client, targets) {
     }
   }
 
-  return planetIds;
+  return { planetIds, missingCoords };
 }
 
 export async function sendSpyMission(client, target, planetId, cp) {
@@ -388,7 +456,14 @@ export async function sendSpyMissions(options = {}, client) {
     log.info(`Départ espionnage — cp ${options.cp}`);
   }
 
-  const planetMeta = await loadPlanetIds(http, targets);
+  const { planetIds, missingCoords } = await loadPlanetIds(http, targets);
+  let removedFromGalaxy = [];
+
+  if (missingCoords.length) {
+    const removal = purgeGalaxyCoords(missingCoords, "planète absente");
+    removedFromGalaxy = removal.coords;
+  }
+
   const results = [];
   let slotStatus = null;
 
@@ -402,15 +477,34 @@ export async function sendSpyMissions(options = {}, client) {
   for (let index = 0; index < targets.length; index++) {
     const target = targets[index];
     const coords = formatCoords(target);
-    const meta = planetMeta.get(coords);
+    const meta = planetIds.get(coords);
 
     if (!meta?.planetId) {
       results.push({
         coords,
         ok: false,
-        error: "Planète introuvable sur la galaxie (colonie vide ou coords invalides)",
+        warning: true,
+        skipped: true,
+        reason: "planet_gone",
+        error: PLANET_GONE_MESSAGE,
       });
-      log.warn(`Skip ${coords}`, { reason: "planète introuvable" });
+      log.warn(`Skip ${coords}`, { reason: PLANET_GONE_MESSAGE });
+      if (typeof options.onProgress === "function") {
+        const stats = summarizeSpySendResults(results);
+        options.onProgress({
+          done: results.length,
+          total: targets.length,
+          ok: stats.ok,
+          failed: stats.failed,
+          weakPlayer: stats.weakPlayer,
+          planetGone: stats.planetGone,
+          coords,
+        });
+      }
+      if (!options.dryRun && index < targets.length - 1) {
+        const delay = randomDelayMs(options.delayMinMs, options.delayMaxMs);
+        await sleep(delay);
+      }
       continue;
     }
 
@@ -437,7 +531,7 @@ export async function sendSpyMissions(options = {}, client) {
         http = ready.client;
         slotStatus = ready.status;
         payload = await sendSpyMission(http, target, meta.planetId, options.cp);
-        ok = Number(payload.code) === 600;
+        ok = Number(payload.code) === SPY_OK_CODE;
 
         if (ok || !isRetryableFleetError(payload)) {
           break;
@@ -452,6 +546,8 @@ export async function sendSpyMissions(options = {}, client) {
         ok,
         code: payload?.code,
         message: payload?.mess,
+        reason: ok ? null : spyFailureReason(payload),
+        warning: !ok,
         slots: payload?.slots,
         fleetSlots: slotStatus ? `${slotStatus.used}/${slotStatus.max}` : null,
         planetName: meta.planetName,
@@ -467,6 +563,8 @@ export async function sendSpyMissions(options = {}, client) {
       results.push({
         coords,
         ok: false,
+        warning: true,
+        reason: "error",
         error: error.message,
         planetName: meta.planetName,
         username: meta.username,
@@ -475,10 +573,14 @@ export async function sendSpyMissions(options = {}, client) {
     }
 
     if (typeof options.onProgress === "function") {
+      const stats = summarizeSpySendResults(results);
       options.onProgress({
         done: results.length,
         total: targets.length,
-        ok: results.filter((r) => r.ok).length,
+        ok: stats.ok,
+        failed: stats.failed,
+        weakPlayer: stats.weakPlayer,
+        planetGone: stats.planetGone,
         coords,
       });
     }
@@ -489,6 +591,17 @@ export async function sendSpyMissions(options = {}, client) {
     }
   }
 
+  const staleCoords = results
+    .filter((r) => r.reason === "coords_changed" || Number(r.code) === SPY_COORDS_CHANGED_CODE)
+    .map((r) => r.coords);
+
+  if (staleCoords.length && !options.dryRun) {
+    const removal = purgeGalaxyCoords(staleCoords, "coords obsolètes (601)");
+    removedFromGalaxy = [...new Set([...removedFromGalaxy, ...removal.coords])];
+  }
+
+  const stats = summarizeSpySendResults(results);
+
   return {
     meta: {
       total: targets.length,
@@ -497,20 +610,28 @@ export async function sendSpyMissions(options = {}, client) {
       parallel: options.parallel,
       reserveSlots: options.reserveSlots,
       fleetSlots: slotStatus ? `${slotStatus.used}/${slotStatus.max}` : null,
+      removedFromGalaxy,
+      ...stats,
     },
     results,
   };
 }
 
 export function printSpySendSummary(payload) {
-  const okCount = payload.results.filter((result) => result.ok).length;
-  const failCount = payload.results.length - okCount;
+  const stats = summarizeSpySendResults(payload.results);
   const mode = payload.meta.dryRun ? "simulation" : "envoi";
 
   const slotInfo = payload.meta.fleetSlots ? ` — flottes ${payload.meta.fleetSlots}` : "";
   const parallelInfo = payload.meta.parallel ? ` — max ${payload.meta.parallel} espion(s) en parallèle` : "";
+  const detailParts = [];
+  if (stats.weakPlayer) detailParts.push(`${stats.weakPlayer} trop faible`);
+  if (stats.planetGone) detailParts.push(`${stats.planetGone} planète absente`);
+  if (stats.coordsChanged) detailParts.push(`${stats.coordsChanged} coords obsolète(s)`);
+  if (stats.otherFailed) detailParts.push(`${stats.otherFailed} autre(s) échec(s)`);
+  const failDetail = detailParts.length ? ` (${detailParts.join(", ")})` : "";
+
   console.log(
-    `\nEspionnage (${mode}) — ${okCount} OK / ${failCount} échec(s) sur ${payload.meta.total} cible(s)${slotInfo}${parallelInfo}\n`
+    `\nEspionnage (${mode}) — ${stats.ok} OK / ${stats.failed} échec(s) sur ${stats.total} cible(s)${failDetail}${slotInfo}${parallelInfo}\n`
   );
 
   for (const [index, result] of payload.results.entries()) {

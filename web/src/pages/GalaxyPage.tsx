@@ -6,6 +6,7 @@ import { IconText, PageTitle } from "../components/IconText";
 import { SortableTh, useSortState } from "../components/SortableTh";
 import { usePlanetSource } from "../context/PlanetSourceContext";
 import { formatAmount } from "../utils/format";
+import { handleSpySendJobUpdate } from "../utils/spy-job";
 import {
   applyTableRowSelect,
   selectAllTableRows,
@@ -24,11 +25,13 @@ export function GalaxyPage() {
   const [page, setPage] = useState(1);
   const [inactive, setInactive] = useState("true");
   const [notSpiedToday, setNotSpiedToday] = useState(false);
+  const [neverSpied, setNeverSpied] = useState(false);
   const [search, setSearch] = useState("");
   const [galaxy, setGalaxy] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [jobMsg, setJobMsg] = useState<string | null>(null);
+  const [jobMsgWarn, setJobMsgWarn] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const [parallel, setParallel] = useState(() => localStorage.getItem(PARALLEL_KEY) ?? "13");
   const [maxTargets, setMaxTargets] = useState(() => localStorage.getItem(MAX_TARGETS_KEY) ?? "");
@@ -37,13 +40,14 @@ export function GalaxyPage() {
   const params = useMemo(() => {
     const p = new URLSearchParams({ page: String(page), pageSize: "100" });
     if (inactive) p.set("inactive", inactive);
-    if (notSpiedToday) p.set("notSpiedToday", "true");
+    if (notSpiedToday || neverSpied) p.set("notSpiedToday", "true");
+    if (neverSpied) p.set("neverSpied", "true");
     if (search) p.set("search", search);
     if (galaxy) p.set("galaxy", galaxy);
     p.set("sortBy", sortKey);
     p.set("sortDir", sortDir);
     return p;
-  }, [page, inactive, notSpiedToday, search, galaxy, sortKey, sortDir]);
+  }, [page, inactive, notSpiedToday, neverSpied, search, galaxy, sortKey, sortDir]);
 
   const meta = useQuery({ queryKey: ["galaxy-meta"], queryFn: client.galaxyMeta });
   const { data, isLoading, refetch } = useQuery({
@@ -64,16 +68,13 @@ export function GalaxyPage() {
       });
     },
     onSuccess: ({ jobId }) => {
+      setJobMsgWarn(false);
       setJobMsg("Espionnage lancé…");
       watchJob(jobId, (job: Job) => {
-        const p = job.progress as { ok?: number; done?: number; total?: number };
-        if (job.status === "running") setJobMsg(`Espionnage ${p.done ?? 0}/${p.total ?? "?"}`);
-        if (job.status === "completed") {
-          setJobMsg(`Terminé — ${p.ok ?? 0} OK`);
+        handleSpySendJobUpdate(job, selected.size, setJobMsg, setJobMsgWarn, () => {
           refetch();
           qc.invalidateQueries({ queryKey: ["spy-reports"] });
-        }
-        if (job.status === "failed") setJobMsg(`Erreur : ${job.error}`);
+        });
       });
     },
     onError: (e: Error) => setJobMsg(`Erreur : ${e.message}`),
@@ -151,7 +152,12 @@ export function GalaxyPage() {
           <button
             type="button"
             className="btn btn-primary"
-            disabled={!selected.size || spySend.isPending || !sourceCp}
+            disabled={!selected.size || spySend.isPending}
+            title={
+              sourceCp
+                ? undefined
+                : "Planète source non définie — choisis un monde dans l'en-tête si l'envoi échoue."
+            }
             onClick={() => spySend.mutate([...selected])}
           >
             <IconText icon={Radar} size={15}>
@@ -161,7 +167,7 @@ export function GalaxyPage() {
         </div>
       </div>
 
-      {jobMsg && <p className="status-msg">{jobMsg}</p>}
+      {jobMsg && <p className={`status-msg${jobMsgWarn ? " status-msg--warn" : ""}`}>{jobMsg}</p>}
 
       <div className="filters">
         <input
@@ -177,10 +183,24 @@ export function GalaxyPage() {
         <label>
           <input
             type="checkbox"
-            checked={notSpiedToday}
+            checked={notSpiedToday || neverSpied}
+            disabled={neverSpied}
             onChange={(e) => { setNotSpiedToday(e.target.checked); setPage(1); }}
           />
           Pas espionné aujourd&apos;hui
+        </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={neverSpied}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setNeverSpied(checked);
+              if (checked) setNotSpiedToday(true);
+              setPage(1);
+            }}
+          />
+          Jamais espionné
         </label>
         <input
           placeholder="Galaxie #"
@@ -217,6 +237,7 @@ export function GalaxyPage() {
       <p className="muted page-meta">
         {data?.total?.toLocaleString("fr-FR")} planètes — page {data?.page}/{data?.totalPages}
         {data?.spiedToday != null && ` — ${data.spiedToday} espionné(s) aujourd'hui`}
+        {neverSpied && data?.allSpied != null && ` — ${data.allSpied} exclue(s) (archive espionnage)`}
         {` — sélection : ${selected.size}`}
       </p>
 
@@ -281,7 +302,13 @@ export function GalaxyPage() {
                   {!e.inactive && !e.onVacation && <span className="tag ok">actif</span>}
                 </td>
                 <td className="col-flag">
-                  {e.spiedToday ? <span className="spy-badge">oui</span> : "—"}
+                  {e.spiedToday ? (
+                    <span className="spy-badge">oui</span>
+                  ) : e.everSpied ? (
+                    <span className="muted" title="Déjà espionné, mais pas aujourd'hui">ancien</span>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="col-alliance" title={e.alliance?.tag}>{e.alliance?.tag ?? "—"}</td>
               </tr>

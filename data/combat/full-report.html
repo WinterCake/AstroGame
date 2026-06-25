@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<!--[if lt IE 7 ]><html lang="fr" class="no-js ie6"><![endif]-->
+<!--[if IE 7 ]><html lang="fr" class="no-js ie7"><![endif]-->
+<!--[if IE 8 ]><html lang="fr" class="no-js ie8"><![endif]-->
+<!--[if IE 9 ]><html lang="fr" class="no-js ie9"><![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!-->
+<html lang="fr" class="no-js"><!--<![endif]-->
+
+<head><script>(function(w,i,g){w[g]=w[g]||[];if(typeof w[g].push=='function')w[g].push(i)})
+(window,'GTM-NR8N633F','google_tags_first_party');</script><script>(function(w,d,s,l){w[l]=w[l]||[];(function(){w[l].push(arguments);})('set', 'developer_id.dYzg1YT', true);
+		w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+		j=d.createElement(s);j.async=true;j.src='/qw4d/';
+		f.parentNode.insertBefore(j,f);
+		})(window,document,'script','dataLayer');</script>
+	<base href="https://play.astrogame.org/">
+	<title>Rapport de bataille - Chaos - Astrogame</title>
+	<link rel="manifest" href="/manifest.json">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-title" content="astrogame.org">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<link href="/pwa/img/iphone5_splash.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/iphone6_splash.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/iphoneplus_splash.png" media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/iphonex_splash.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/ipad_splash.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/ipadpro1_splash.png" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+	<link href="/pwa/img/ipadpro2_splash.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" rel="apple-touch-startup-image" />
+	<link rel="apple-touch-icon" sizes="128x128" href="/pwa/img/128x128.png">
+	<link rel="apple-touch-icon-precomposed" sizes="128x128" href="/pwa/img/128x128.png">
+	<link rel="icon" sizes="192x192" href="/pwa/img/192x192.png">
+	<link rel="icon" sizes="128x128" href="/pwa/img/128x128.png">
+	<script type="text/javascript">
+		if ('serviceWorker' in navigator) {
+			window.addEventListener('load', function() {
+				navigator.serviceWorker.register('/scripts/public/sw.js?v=22.79');
+			});
+		}
+	</script>
+	<meta name="generator" content="Astrogame Browser Game 22.79 - Powered by Dev10.net">
+		<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+		<link rel="stylesheet" type="text/css" href="styles/resource/css/base/boilerplate.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/ingame/main.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/ingame/generic.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/ingame/tooltipster.bundle.min.css?v=22.79">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css?v=22.79">
+		<link rel="stylesheet" type="text/css" href="styles/resource/css/base/jquery.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/base/jquery.fancybox.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/base/validationEngine.jquery.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/theme/epicblue/formate.css?v=22.79">
+		<link rel="stylesheet" type="text/css" href="styles/resource/css/ingame/custom.css?v=22.79">
+	<link rel="stylesheet" type="text/css" href="styles/resource/css/public/theme.css?v=22.79">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
+	<link rel="shortcut icon" href="./favicon.ico?v=22.79" type="image/x-icon">
+		<script type="text/javascript">
+		var ServerTimezoneOffset = -3600;
+		var serverTime = new Date(2026, 5, 23, 16, 24, 41);
+		var startTime = serverTime.getTime();
+		var localTime = serverTime;
+		var localTS = startTime;
+		var serverTimeInterval = null;
+		var globalTitle = 'Rapport de bataille - Chaos - Astrogame';
+		var notificationCount = parseInt('0');
+		var Gamename = document.title;
+		var Ready = "Prêt";
+		var Skin = "styles/theme/epicblue/";
+		var Lang = "fr";
+		var head_info = "Information";
+		var button_ok = "Ok";
+		var button_cancel = "Annuler";
+		var auth = 0;
+		var days = [
+    "Dim",
+    "Lun",
+    "Mar",
+    "Mer",
+    "Jeu",
+    "Ven",
+    "Sam"
+];
+		var months = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Avr",
+    "Mai",
+    "Juin",
+    "Juil",
+    "Aout",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec"
+];
+		var long_day = "Jour";
+		var long_days = "Jours";
+		var short_week = "w";
+		var short_day = "d";
+		var short_hour = "h";
+		var short_minute = "m";
+		var short_second = "s";
+		var tdformat = "[M] [D] [d] [H]:[i]:[s]";
+		var tdformat2 = "[d]/[m]/[Y] [H]:[i]:[s]";
+		var queryString = "raport=d80b615691f2b2d7a01efdb05d881463";
+		var isPlayerCardActive = "1";
+		var currentUrl = "https://play.astrogame.org/uni24/game/combatReport";
+		var currentUrlWithQuery = "https://play.astrogame.org/uni24/game/combatReport?raport=d80b615691f2b2d7a01efdb05d881463";
+		var loadingText = "Chargement ...";
+		var siteUrl = "https://play.astrogame.org/uni24/";
+		var baseUrl = "https://play.astrogame.org/";
+		var socketActionDisabled = parseInt('0');
+		var isPageAdmin = false;
+		var isPageLogout = parseInt('0');
+		var userAlertSoundStatus = parseInt('0');
+		var userAlertSound = "0";
+		var userMobileStatus = parseInt('0');
+		var isMobileDevice = window.matchMedia("only screen and (max-width: 760px)").matches;
+		var loggedIn = parseInt('1');
+		var loggedInId = parseInt('184962');
+		var loggedInUId = parseInt('24');
+		var socketServers = [
+    "wss:\/\/nats.astrogame.org"
+];
+		var systemVersion = '22.79';
+				var notificationLang = {
+			notification: 'Notifications',
+			notificationNo: 'You Have No Notification!',
+			notificationDOne: 'Are you sure you want to delete the notification?',
+			notificationDAll: 'Are you sure you want to delete the all notifications?',
+			notificationRAll: 'Are you sure you want to read all notifications?',
+			notificationPError: 'Your transaction could not be processed!',
+		};
+		var modalLang = {
+			modalConfirm: 'Confirmer',
+			modalCancel: 'Annuler',
+			modalClose: 'Fermer',
+		};
+		var confirmDeleteMode = 'Votre compte sera supprimé du mode suppression. Es-tu sûr?';
+		var confirmCancel = 'Es-tu sûre de vouloir annuler?';
+		var activeTemplate = 'game';
+
+		serverTimeInterval = setInterval(function() {
+			serverTime.setSeconds(serverTime.getSeconds() + 1);
+		}, 1000);
+	</script>
+	<script type="text/javascript" src="scripts/base/jquery.min.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.migrate.min.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/game/tooltipster.bundle.min.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.browser.min.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.ui.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.cookie.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.fancybox.min.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/jquery.validationEngine.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/l18n/validationEngine/jquery.validationEngine-fr.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/base/tooltip.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/game/base.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/game/countdown.js?v=22.79"></script>
+	<script type="text/javascript" src="scripts/public/clipboard.min.js?v=22.79"></script>
+					<script type="text/javascript" src="scripts/base/jquery.base64.min.js?v=22.79"></script>
+		<script type="text/javascript" src="scripts/base/nats.js?v=22.79"></script>
+		<script type="text/javascript" src="scripts/base/sysSocket.js?v=22.79"></script>
+		<script type="text/javascript" src="scripts/game/socketActions.js?v=22.79"></script>
+		<!-- TikTok Pixel Code Start -->
+	<script>
+		! function(w, d, t) {
+			w.TiktokAnalyticsObject = t;
+			var ttq = w[t] = w[t] || [];
+			ttq.methods = ["page", "track", "identify", "instances", "debug", "on", "off", "once", "ready", "alias", "group", "enableCookie", "disableCookie", "holdConsent", "revokeConsent", "grantConsent"], ttq.setAndDefer = function(t, e) {
+				t[e] = function() {
+					t.push([e].concat(Array.prototype.slice.call(arguments, 0)))
+				}
+			};
+			for (var i = 0; i < ttq.methods.length; i++) ttq.setAndDefer(ttq, ttq.methods[i]);
+			ttq.instance = function(t) {
+				for (
+					var e = ttq._i[t] || [], n = 0; n < ttq.methods.length; n++) ttq.setAndDefer(e, ttq.methods[n]);
+				return e
+			}, ttq.load = function(e, n) {
+				var r = "https://analytics.tiktok.com/i18n/pixel/events.js",
+					o = n && n.partner;
+				ttq._i = ttq._i || {}, ttq._i[e] = [], ttq._i[e]._u = r, ttq._t = ttq._t || {}, ttq._t[e] = +new Date, ttq._o = ttq._o || {}, ttq._o[e] = n || {};
+				n = document.createElement("script");
+				n.type = "text/javascript", n.async = !0, n.src = r + "?sdkid=" + e + "&lib=" + t;
+				e = document.getElementsByTagName("script")[0];
+				e.parentNode.insertBefore(n, e)
+			};
+
+
+			ttq.load('CV6U183C77U49FEMV3SG');
+			ttq.page();
+		}(window, document, 'ttq');
+	</script>
+	<!-- TikTok Pixel Code End -->
+	<!-- Google Consent Mode (default denied) -->
+	<script>
+		window.dataLayer = window.dataLayer || [];
+
+		function gtag() {
+			dataLayer.push(arguments);
+		} // eslint-disable-line no-unused-vars
+		gtag('consent', 'default', {
+			ad_storage: 'denied',
+			analytics_storage: 'denied',
+			ad_user_data: 'denied',
+			ad_personalization: 'denied'
+		});
+
+		// Call this after user grants/changes consent in your CMP
+		window.updateConsent = function updateConsent(consents) {
+			gtag('consent', 'update', Object.assign({
+				ad_storage: 'denied',
+				analytics_storage: 'denied',
+				ad_user_data: 'denied',
+				ad_personalization: 'denied'
+			}, consents || {}));
+			try {
+				/* console log removed */
+			} catch (e) {}
+			try {
+				window.dataLayer && window.dataLayer.push({
+					event: 'consent_update'
+				});
+			} catch (e) {}
+		};
+	</script>
+	<!-- Google Tag Manager -->
+	<script>
+		(function(w, d, s, l, i) {
+			w[l] = w[l] || [];
+			w[l].push({
+				'gtm.start': new Date().getTime(),
+				event: 'gtm.js'
+			});
+			var f = d.getElementsByTagName(s)[0],
+				j = d.createElement(s),
+				dl = l != 'dataLayer' ? '&l=' + l : '';
+			j.async = true;
+			j.src =
+				'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+			f.parentNode.insertBefore(j, f);
+		})(window, document, 'script', 'dataLayer', 'GTM-NR8N633F');
+	</script>
+	<!-- End Google Tag Manager -->
+</head>
+
+<body id="combatReport" class="popup">
+	<!-- Consent Banner -->
+	<div id="consent-banner" style="display:none; position:fixed; bottom:16px; left:16px; z-index:9999; background:linear-gradient(135deg,#0b1220,#0a0f1a); color:#e2e8f0; padding:12px 16px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.6), 0 0 0 1px rgba(148,163,184,.08) inset; font:14px/1.4 'Space Grotesk', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;">
+		<div style="max-width:360px; margin:0; display:flex; gap:12px; align-items:flex-start; justify-content:flex-start; flex-wrap:wrap;">
+			<div style="flex:1 1 520px; opacity:.95;">
+				Nous utilisons des cookies pour une expérience de jeu plus fluide, moins d’erreurs et un contenu adapté à vos centres d’intérêt.			</div>
+			<div style="display:flex; gap:8px; width:100%;">
+				<button id="consent-reject" style="background:#1f2937; color:#e2e8f0; border:0; padding:10px 14px; border-radius:6px; cursor:pointer; min-width:100px;">
+					Refuser				</button>
+				<button id="consent-accept" style="background:#3b82f6; color:#fff; border:0; padding:10px 14px; border-radius:6px; cursor:pointer; min-width:150px; width:100%;">
+					Accepter				</button>
+			</div>
+		</div>
+	</div>
+	<script>
+		(function() {
+			try {
+				var KEY = 'consent_choice_v1';
+				var choice = localStorage.getItem(KEY);
+				var banner = document.getElementById('consent-banner');
+				if (banner && banner.parentNode !== document.documentElement) {
+					document.documentElement.appendChild(banner);
+				}
+				if (!choice && banner) {
+					banner.style.display = 'block';
+					var accept = document.getElementById('consent-accept');
+					var reject = document.getElementById('consent-reject');
+					var hide = function() {
+						banner.style.display = 'none';
+					};
+					if (accept) accept.addEventListener('click', function() {
+						localStorage.setItem(KEY, 'granted');
+						if (window.updateConsent) window.updateConsent({
+							ad_storage: 'granted',
+							analytics_storage: 'granted',
+							ad_user_data: 'granted',
+							ad_personalization: 'granted'
+						});
+						try {
+							window.dataLayer && window.dataLayer.push({
+								event: 'consent_choice',
+								consent: 'granted'
+							});
+						} catch (e) {}
+						hide();
+					});
+					if (reject) reject.addEventListener('click', function() {
+						localStorage.setItem(KEY, 'denied');
+						if (window.updateConsent) window.updateConsent({
+							ad_storage: 'denied',
+							analytics_storage: 'denied',
+							ad_user_data: 'denied',
+							ad_personalization: 'denied'
+						});
+						try {
+							window.dataLayer && window.dataLayer.push({
+								event: 'consent_choice',
+								consent: 'denied'
+							});
+						} catch (e) {}
+						hide();
+					});
+				}
+			} catch (e) {}
+		})();
+	</script>
+	<div id="tooltip" class="tip"></div>
+	<!-- Google Tag Manager (noscript) -->
+	<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NR8N633F"
+			height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+	<!-- End Google Tag Manager (noscript) -->
+
+<div style="width:100%;text-align:center">
+			Les flottes suivantes s'opposent : 	23. Juin 2026, 14:51:31:<br>
+				<table class="mauto">
+			<tr>
+														<td class="transparent">
+						<table class="mauto">
+							<tr>
+								<td>
+									Attaquant ZIRTPIRT																			[4:178:15]
+										 (P)									<br>
+									Armes 520% - Boucliers 500% - Blindage 460%
+									<table width="100%" class="mauto">
+																					<tr>
+												<td class="transparent">Type</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/207.png?v=22.79" alt="Vaisseau de bataille" width="90" height="90"><br>
+														Commandeur													</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/217.png?v=22.79" alt="Transporteur ultime" width="90" height="90"><br>
+														T. Ultime													</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Nombre</td>
+																									<td class="transparent tooltip" title="50">50</td>
+																									<td class="transparent tooltip" title="100">100</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Armes</td>
+																									<td class="transparent tooltip" title="5.200">5,2&nbsp;K</td>
+																									<td class="transparent tooltip" title="260">260</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Boucliers</td>
+																									<td class="transparent tooltip" title="800">800</td>
+																									<td class="transparent tooltip" title="480">480</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Blindage</td>
+																									<td class="transparent tooltip" title="30.000">30&nbsp;K</td>
+																									<td class="transparent tooltip" title="27.500">27,5&nbsp;K</td>
+																							</tr>
+																			</table>
+								</td>
+							</tr>
+						</table>
+					</td>
+							</tr>
+		</table>
+		<table class="mauto">
+			<tr>
+														<td class="transparent">
+						<table class="mauto">
+							<tr>
+								<td>
+									Défenseur alexishoffmann047																			[4:36:7]
+										 (L)									<br>
+									Armes 470% - Boucliers 480% - Blindage 420%
+			
+									<table width="100%" class="mauto">
+																					<tr>
+												<td class="transparent">Type</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/207.png?v=22.79" alt="Vaisseau de bataille" width="90" height="90"><br>
+														Commandeur													</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/406.png?v=22.79" alt="Lanceur de Plasma" width="90" height="90"><br>
+														Plasma													</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Nombre</td>
+																									<td class="transparent tooltip" title="9.284">9,3&nbsp;K</td>
+																									<td class="transparent tooltip" title="20">20</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Armes</td>
+																									<td class="transparent tooltip" title="4.700">4,7&nbsp;K</td>
+																									<td class="transparent tooltip" title="15.651">15,7&nbsp;K</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Boucliers</td>
+																									<td class="transparent tooltip" title="731">731</td>
+																									<td class="transparent tooltip" title="1.096">1,1&nbsp;K</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Blindage</td>
+																									<td class="transparent tooltip" title="28.800">28,8&nbsp;K</td>
+																									<td class="transparent tooltip" title="48.000">48,0&nbsp;K</td>
+																							</tr>
+																			</table>
+								</td>
+							</tr>
+						</table>
+					</td>
+							</tr>
+		</table>
+					La flotte attaquante tire avec une force de <span class="tooltip" title="286.000">286&nbsp;K</span> Sur le défenseur. Les boucliers du défenseur absorbent <span class="tooltip" title="67.996">68,0&nbsp;K</span> Points de dégats<br>
+			La flotte du défenseur tire avec une force de <span class="tooltip" title="43.947.820">43,9&nbsp;M</span> Sur l'attaquant. Les boucliers de l'attaquant absorbent <span class="tooltip" title="101.200">101&nbsp;K</span> Points de dégats<br>
+							<table class="mauto">
+			<tr>
+														<td class="transparent">
+						<table class="mauto">
+							<tr>
+								<td>
+									Attaquant ZIRTPIRT																			[4:178:15]
+										 (P)									<br>
+									Armes 520% - Boucliers 500% - Blindage 460%
+									<table width="100%" class="mauto">
+																					<tr>
+												<td class="transparent">
+													<br>Détruit !<br><br>
+												</td>
+											</tr>
+																			</table>
+								</td>
+							</tr>
+						</table>
+					</td>
+							</tr>
+		</table>
+		<table class="mauto">
+			<tr>
+														<td class="transparent">
+						<table class="mauto">
+							<tr>
+								<td>
+									Défenseur alexishoffmann047																			[4:36:7]
+										 (L)									<br>
+									Armes 470% - Boucliers 480% - Blindage 420%
+			
+									<table width="100%" class="mauto">
+																					<tr>
+												<td class="transparent">Type</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/207.png?v=22.79" alt="Vaisseau de bataille" width="90" height="90"><br>
+														Commandeur													</td>
+																									<td class="transparent">
+														<img src="styles/theme/epicblue/gebaeude/406.png?v=22.79" alt="Lanceur de Plasma" width="90" height="90"><br>
+														Plasma													</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Nombre</td>
+																									<td class="transparent tooltip" title="9.279">9,3&nbsp;K</td>
+																									<td class="transparent tooltip" title="20">20</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Armes</td>
+																									<td class="transparent tooltip" title="4.700">4,7&nbsp;K</td>
+																									<td class="transparent tooltip" title="15.651">15,7&nbsp;K</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Boucliers</td>
+																									<td class="transparent tooltip" title="731">731</td>
+																									<td class="transparent tooltip" title="1.096">1,1&nbsp;K</td>
+																							</tr>
+											<tr>
+												<td class="transparent">Blindage</td>
+																									<td class="transparent tooltip" title="28.800">28,8&nbsp;K</td>
+																									<td class="transparent tooltip" title="48.000">48,0&nbsp;K</td>
+																							</tr>
+																			</table>
+								</td>
+							</tr>
+						</table>
+					</td>
+							</tr>
+		</table>
+								Le défenseur a gagné la bataille !		<br><br>
+	Pertes attaquant : <span class="tooltip" title="8.500.000">8,5&nbsp;M</span> Unités<br>
+	Pertes defenseur : <span class="tooltip" title="300.000">300&nbsp;K</span> Unités<br>
+	Coordonnées Champs de Débris				<span class="tooltip" title="3.585.000">3,6&nbsp;M</span> Métal		, 					<span class="tooltip" title="1.695.000">1,7&nbsp;M</span> Crystal					Débris.	<br>
+			Probabilité d'une Lune:  0 %<br>
+				
+			<style>
+			#fleetsave:hover
+			{
+			    color:red;
+			}
+			#fleetsave
+			{
+			    color:lime;
+			    font-weight:bold;
+			    font-size:18px;
+			}
+		</style>
+		<br /><br />
+		<div>
+			<a href="https://play.astrogame.org/uni24/game/fleetRescue?rid=d80b615691f2b2d7a01efdb05d881463"> <br /><span id="fleetsave">Système de Récupération de Flotte</span><br /><br /> </a>
+		</div>
+	</div>
+		<div class="clear"></div>
+		<div id="alertSound" style="display:none;"></div>
+		<div id="alertSoundSettings" style="display:none;"></div>
+		<footer>
+										<script async src="https://www.googletagmanager.com/gtag/js?id="></script>
+				<script>
+					window.dataLayer = window.dataLayer || [];
+
+					function gtag() {
+						dataLayer.push(arguments);
+					}
+					gtag('js', new Date());
+					gtag('config', '');
+				</script>
+													<script type="text/javascript">
+					$(document).ready(function() {
+						SysSocket.setToken('968e680813e85a9129ab0b55e1e39082e3f369264aa99b2db1f4ce5337c7de5b');
+						SysSocket.connect(false);
+
+						SysSocket.on('reconnect', function() {
+							if (SysSocket.queues) {
+								Object.keys(SysSocket.queues).forEach(function(key) {
+									// Unsubscribe eski connection'dan (hata handle edildi)
+									SysSocket.unSubscribe(key);
+
+									// Yeni connection'a subscribe et
+									SysSocket.subscribe(key);
+								});
+							}
+						});
+					});
+				</script>
+					</footer>
+		<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"46e9234a0f23478ebf8b920b52590135","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+
+		</html>

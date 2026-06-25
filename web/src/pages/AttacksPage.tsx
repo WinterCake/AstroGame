@@ -14,6 +14,7 @@ import { IconText, PageTitle } from "../components/IconText";
 import { usePlanetSource } from "../context/PlanetSourceContext";
 import { isAttacksRouteState } from "../navigation";
 import { formatMissionTime } from "../utils/format";
+import { handleSpySendJobUpdate } from "../utils/spy-job";
 
 const PARALLEL_KEY = "astrogame-spy-parallel";
 
@@ -49,6 +50,7 @@ export function AttacksPage() {
   const [coordsText, setCoordsText] = useState("");
   const [preview, setPreview] = useState<AttackTarget[] | null>(null);
   const [jobMsg, setJobMsg] = useState<string | null>(null);
+  const [jobMsgWarn, setJobMsgWarn] = useState(false);
   const [minLoot, setMinLoot] = useState("1000000000");
   const [historyView, setHistoryView] = useState<HistoryView>("all");
   const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
@@ -166,16 +168,13 @@ export function AttacksPage() {
         parallel: Number(parallel) || 13,
       }),
     onSuccess: ({ jobId }, coords) => {
+      setJobMsgWarn(false);
       setJobMsg(`Ré-espionnage de ${coords.length} cible(s)…`);
       watchJob(jobId, (job: Job) => {
-        const p = job.progress as { ok?: number; done?: number; total?: number };
-        if (job.status === "running") setJobMsg(`Espionnage ${p.done ?? 0}/${p.total ?? coords.length}`);
-        if (job.status === "completed") {
-          setJobMsg(`Espionnage terminé — ${p.ok ?? 0} OK`);
+        handleSpySendJobUpdate(job, coords.length, setJobMsg, setJobMsgWarn, () => {
           qc.invalidateQueries({ queryKey: ["spy-reports"] });
           qc.invalidateQueries({ queryKey: ["galaxy-entries"] });
-        }
-        if (job.status === "failed") setJobMsg(`Erreur : ${job.error}`);
+        });
       });
     },
     onError: (e: Error) => setJobMsg(`Erreur : ${e.message}`),
@@ -217,7 +216,7 @@ export function AttacksPage() {
         <PageTitle icon={Crosshair}>Attaques pillage</PageTitle>
       </div>
 
-      {jobMsg && <p className="status-msg">{jobMsg}</p>}
+      {jobMsg && <p className={`status-msg${jobMsgWarn ? " status-msg--warn" : ""}`}>{jobMsg}</p>}
 
       <div className="form-block form-block--attacks">
         <label>

@@ -1,0 +1,255 @@
+{
+  "meta": {
+    "exportedAt": "2026-06-10T19:44:57.797Z",
+    "day": "2026-06-10",
+    "total": 25,
+    "sources": [
+      "game/messages/combat-reports",
+      "chrome-extension/attacksHistory",
+      "chrome-extension/attacksToday",
+      "fleetTable/activeFleetActs",
+      "overview"
+    ],
+    "counts": {
+      "combatReports": 4,
+      "combatReportsUnique": 1,
+      "extension": {
+        "attacksHistory": 33,
+        "attacksToday": 45,
+        "unique": 45
+      },
+      "fleetActive": 46,
+      "overview": 23,
+      "paste": 0
+    },
+    "extensionStorage": "C:\\Users\\Alex\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\Local Extension Settings\\jgnbpobailkodlipilakbkappapadddp"
+  },
+  "coords": [
+    "2:26:3",
+    "2:193:7",
+    "2:193:8",
+    "2:225:4",
+    "2:301:8",
+    "2:333:8",
+    "2:380:15",
+    "2:381:8",
+    "3:43:1",
+    "3:43:15",
+    "3:44:9",
+    "3:82:7",
+    "3:82:8",
+    "3:86:9",
+    "3:111:3",
+    "4:151:8",
+    "4:193:7",
+    "4:253:12",
+    "4:254:7",
+    "4:263:5",
+    "5:65:7",
+    "5:270:8",
+    "5:380:7",
+    "5:380:8",
+    "5:380:15"
+  ],
+  "attacks": [
+    {
+      "coords": "2:26:3",
+      "at": 1781123684000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "DraculeaSky",
+      "amount": "2500"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1781123656000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "spiuncy",
+      "amount": "4000"
+    },
+    {
+      "coords": "2:193:8",
+      "at": 1781123680000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "santiago",
+      "amount": "2500"
+    },
+    {
+      "coords": "2:225:4",
+      "at": 1781123773000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "XxMoisesxX",
+      "amount": "2000"
+    },
+    {
+      "coords": "2:301:8",
+      "at": 1781123663000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "spiuncy",
+      "amount": "3000"
+    },
+    {
+      "coords": "2:333:8",
+      "at": 1781123658000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "Malhnov",
+      "amount": "3500"
+    },
+    {
+      "coords": "2:380:15",
+      "at": 1781123673000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "remivid15",
+      "amount": "2500"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1781123667000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "remivid15",
+      "amount": "2500"
+    },
+    {
+      "coords": "3:43:1",
+      "at": 1781123039000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "cridape84",
+      "amount": "2500"
+    },
+    {
+      "coords": "3:43:15",
+      "at": 1781123059000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "cridape84",
+      "amount": "2000"
+    },
+    {
+      "coords": "3:44:9",
+      "at": 1781123057000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "cridape84",
+      "amount": "2000"
+    },
+    {
+      "coords": "3:82:7",
+      "at": 1781123045000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "Street",
+      "amount": "2500"
+    },
+    {
+      "coords": "3:82:8",
+      "at": 1781123052000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "Street",
+      "amount": "2500"
+    },
+    {
+      "coords": "3:86:9",
+      "at": 1781123056000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "nestorcirne566",
+      "amount": "2500"
+    },
+    {
+      "coords": "3:111:3",
+      "at": 1781123034000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "chitero99j",
+      "amount": "3000"
+    },
+    {
+      "coords": "4:151:8",
+      "at": 1781122211000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "manusmarano",
+      "amount": "3000"
+    },
+    {
+      "coords": "4:193:7",
+      "at": 1781122210000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "spiuncy",
+      "amount": "3500"
+    },
+    {
+      "coords": "4:253:12",
+      "at": 1781122227000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "nitangeony",
+      "amount": "2500"
+    },
+    {
+      "coords": "4:254:7",
+      "at": 1781122201000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "joranderic51",
+      "amount": "4500"
+    },
+    {
+      "coords": "4:263:5",
+      "at": 1781122204000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "robertoenvigo",
+      "amount": "4000"
+    },
+    {
+      "coords": "5:65:7",
+      "at": 1781088517000,
+      "source": "combat-report",
+      "messageId": "223786063",
+      "dateText": "10. Juin 2026, 12:48:37"
+    },
+    {
+      "coords": "5:270:8",
+      "at": 1781120697795,
+      "source": "fleet-active",
+      "status": "returning",
+      "target": null,
+      "amount": "2500"
+    },
+    {
+      "coords": "5:380:7",
+      "at": 1781121841000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "remivid15",
+      "amount": "2500"
+    },
+    {
+      "coords": "5:380:8",
+      "at": 1781121846000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "remivid15",
+      "amount": "2500"
+    },
+    {
+      "coords": "5:380:15",
+      "at": 1781121853000,
+      "source": "fleet-active",
+      "status": "attacking",
+      "target": "remivid15",
+      "amount": "2500"
+    }
+  ]
+}

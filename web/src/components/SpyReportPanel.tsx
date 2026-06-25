@@ -1,4 +1,4 @@
-import { FileSearch, Crosshair, Radar } from "lucide-react";
+import { Crosshair, FileSearch, Radar, Trash2 } from "lucide-react";
 import type { SpyReport } from "../api/client";
 import { IconText } from "./IconText";
 import { buildSpyDetailSections, formatSpyReportDate, verdictTone } from "../utils/spy-detail";
@@ -13,6 +13,8 @@ type Props = {
   onRespy?: (coords: string) => void;
   respyDisabled?: boolean;
   respyPending?: boolean;
+  onDelete?: (coords: string) => void;
+  deletePending?: boolean;
 };
 
 export function SpyReportPanel({
@@ -23,6 +25,8 @@ export function SpyReportPanel({
   onRespy,
   respyDisabled,
   respyPending,
+  onDelete,
+  deletePending,
 }: Props) {
   if (!report) {
     return (
@@ -90,7 +94,7 @@ export function SpyReportPanel({
         {mines && <p className="spy-detail-mines">Mines {mines}</p>}
       </header>
 
-      {(onSendToAttacks || onRespy) && (
+      {(onSendToAttacks || onRespy || onDelete) && (
         <div className="spy-panel-actions">
           {onRespy && (
             <button
@@ -112,6 +116,18 @@ export function SpyReportPanel({
             >
               <IconText icon={Crosshair} size={15}>
                 Vers attaques
+              </IconText>
+            </button>
+          )}
+          {onDelete && (
+            <button
+              type="button"
+              className="btn btn-danger"
+              disabled={deletePending}
+              onClick={() => onDelete(report.coords)}
+            >
+              <IconText icon={Trash2} size={15}>
+                Supprimer
               </IconText>
             </button>
           )}

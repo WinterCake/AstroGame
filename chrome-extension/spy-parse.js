@@ -5,6 +5,24 @@ function sumCategoryValues(category) {
   return Object.values(category).reduce((sum, value) => sum + (Number(value) || 0), 0);
 }
 
+/** Missiles en silo — ne comptent pas comme défense pour le filtre « sans défense ». */
+const MISSILE_ONLY_DEFENSE_IDS = new Set(["502", "503"]);
+
+function sumDefenseExcludingMissiles(category) {
+  if (!category) return 0;
+  return Object.entries(category).reduce((sum, [id, value]) => {
+    if (MISSILE_ONLY_DEFENSE_IDS.has(id)) return sum;
+    return sum + (Number(value) || 0);
+  }, 0);
+}
+
+function getEffectiveDefense(report) {
+  if (report.spyData?.["400"]) {
+    return sumDefenseExcludingMissiles(report.spyData["400"]);
+  }
+  return Number(report.defense) || 0;
+}
+
 function sumResources(category) {
   if (!category) return 0;
   return (Number(category?.["901"]) || 0) + (Number(category?.["902"]) || 0) + (Number(category?.["903"]) || 0);
@@ -36,7 +54,7 @@ function summarizeSpyPayload(payload, meta = {}) {
   const coords = `${planet.galaxy}:${planet.system}:${planet.planet}`;
   const loot = sumResources(payload.spyData?.["900"]);
   const fleet = sumCategoryValues(payload.spyData?.["200"]);
-  const defense = sumCategoryValues(payload.spyData?.["400"]);
+  const defense = sumDefenseExcludingMissiles(payload.spyData?.["400"]);
   const buildings = payload.spyData?.["0"] ?? {};
 
   return {
@@ -162,7 +180,7 @@ function mergeSpyReports(existing, incoming) {
 }
 
 function isSansDefense(report) {
-  return (Number(report.fleet) || 0) === 0 && (Number(report.defense) || 0) === 0;
+  return (Number(report.fleet) || 0) === 0 && getEffectiveDefense(report) === 0;
 }
 
 function isGrosButinSansDefense(report) {

@@ -1,0 +1,453 @@
+{
+  "meta": {
+    "source": "spy-send",
+    "importedAt": "2026-06-23T17:37:10.237Z"
+  },
+  "attacks": [
+    {
+      "coords": "6:301:8",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:244:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:244:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:244:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:245:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:245:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:245:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:246:3",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:246:8",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:246:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:247:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:247:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:247:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "4:58:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "4:145:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:74:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:125:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:55:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:55:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:57:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:58:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:56:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:3:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:3:11",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:4:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:4:11",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:5:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:5:11",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:6:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:171:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:144:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:147:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "4:295:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:243:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:243:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:243:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:296:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:277:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:282:10",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:283:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:190:8",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:195:1",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:195:2",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:196:1",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:196:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:196:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "2:199:1",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:230:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:230:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:173:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:175:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:175:11",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:176:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:176:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:176:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:177:3",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:177:6",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:177:14",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:178:12",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:179:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:380:15",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:20:4",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:25:9",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:26:1",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:26:2",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:26:3",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:27:2",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:27:3",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "6:25:5",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:335:15",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:336:13",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:336:14",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:336:15",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:337:13",
+      "at": 1782235482760,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:337:14",
+      "at": 1782236230237,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:337:15",
+      "at": 1782236230237,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:338:13",
+      "at": 1782236230237,
+      "source": "spy-send"
+    },
+    {
+      "coords": "5:338:14",
+      "at": 1782236230237,
+      "source": "spy-send"
+    }
+  ]
+}

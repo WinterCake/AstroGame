@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CloudDownload, Crosshair, Radar } from "lucide-react";
+import { CloudDownload, Crosshair, Radar, Trash2 } from "lucide-react";
 import { client, watchJob, type Job, type SpyReport } from "../api/client";
 import { IconText, PageTitle } from "../components/IconText";
 import { SpyReportPanel } from "../components/SpyReportPanel";
@@ -9,7 +9,8 @@ import { PlayerActivityTag } from "../components/PlayerActivityTag";
 import { SortableTh, useSortState } from "../components/SortableTh";
 import { usePlanetSource } from "../context/PlanetSourceContext";
 import type { AttacksRouteState } from "../navigation";
-import { formatSpyReportDate } from "../utils/spy-detail";
+import { formatSpyReportDate, verdictTone } from "../utils/spy-detail";
+import { handleSpySendJobUpdate } from "../utils/spy-job";
 import {
   applyTableRowSelect,
   selectAllTableRows,
@@ -19,23 +20,26 @@ import {
 
 type SpySortKey = "coords" | "username" | "loot" | "rank" | "timestamp";
 type SpiedDateFilter = "" | "today" | "not-today";
+type InactiveFilter = "" | "true" | "false" | "attackable";
 
 const PARALLEL_KEY = "astrogame-spy-parallel";
 
 export function SpyPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { sourceCp } = usePlanetSource();
+  const { sourceCp, planets } = usePlanetSource();
   const parallel = localStorage.getItem(PARALLEL_KEY) ?? "13";
   const [page, setPage] = useState(1);
   const [sansDefense, setSansDefense] = useState(true);
   const [notAttacked, setNotAttacked] = useState(true);
+  const [inactive, setInactive] = useState<InactiveFilter>("true");
   const [spiedDateFilter, setSpiedDateFilter] = useState<SpiedDateFilter>("");
   const [minLoot, setMinLoot] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [selectionAnchor, setSelectionAnchor] = useState<string | null>(null);
   const [selectedCoords, setSelectedCoords] = useState<string | null>(null);
   const [jobMsg, setJobMsg] = useState<string | null>(null);
+  const [jobMsgWarn, setJobMsgWarn] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const { sortKey, sortDir, toggle } = useSortState<SpySortKey>("loot", "desc");
 
@@ -43,13 +47,14 @@ export function SpyPage() {
     const p = new URLSearchParams({ page: String(page), pageSize: "100" });
     if (sansDefense) p.set("sansDefense", "true");
     if (notAttacked) p.set("notAttacked", "true");
+    if (inactive) p.set("inactive", inactive);
     if (spiedDateFilter === "today") p.set("spiedToday", "true");
     if (spiedDateFilter === "not-today") p.set("spiedToday", "false");
     if (minLoot) p.set("minLoot", minLoot);
     p.set("sortBy", sortKey);
     p.set("sortDir", sortDir);
     return p;
-  }, [page, sansDefense, notAttacked, spiedDateFilter, minLoot, sortKey, sortDir]);
+  }, [page, sansDefense, notAttacked, inactive, spiedDateFilter, minLoot, sortKey, sortDir]);
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["spy-reports", params.toString()],
@@ -95,11 +100,38 @@ export function SpyPage() {
       watchJob(jobId, (job: Job) => {
         if (job.status === "running") setJobMsg("Sync en cours…");
         if (job.status === "completed") {
-          setJobMsg("Rapports synchronisés");
+          const result = job.result as {
+            meta?: { totalReports?: number; newReports?: number; skippedReports?: number };
+          } | undefined;
+          const meta = result?.meta;
+          const fresh = meta?.newReports ?? 0;
+          const skipped = meta?.skippedReports ?? 0;
+          setJobMsg(
+            `Rapports synchronisés — ${meta?.totalReports ?? "?"} au total` +
+              (fresh || skipped ? ` (${fresh} nouveaux, ${skipped} ignorés)` : "")
+          );
           refetch();
         }
         if (job.status === "failed") setJobMsg(`Erreur : ${job.error}`);
       });
+    },
+    onError: (e: Error) => setJobMsg(`Erreur : ${e.message}`),
+  });
+
+  const removeReports = useMutation({
+    mutationFn: (coords: string[]) => client.spyReportsUpdate({ remove: coords }),
+    onSuccess: (_data, coords) => {
+      setJobMsg(`${coords.length} rapport(s) supprimé(s)`);
+      setSelected((prev) => {
+        const next = new Set(prev);
+        for (const coord of coords) next.delete(coord);
+        return next;
+      });
+      if (selectedCoords && coords.includes(selectedCoords)) {
+        setSelectedCoords(null);
+      }
+      qc.invalidateQueries({ queryKey: ["spy-reports"] });
+      qc.invalidateQueries({ queryKey: ["spy-report-detail"] });
     },
     onError: (e: Error) => setJobMsg(`Erreur : ${e.message}`),
   });
@@ -112,17 +144,14 @@ export function SpyPage() {
         parallel: Number(parallel) || 13,
       }),
     onSuccess: ({ jobId }, coords) => {
+      setJobMsgWarn(false);
       setJobMsg(`Espionnage de ${coords.length} cible(s)…`);
       watchJob(jobId, (job: Job) => {
-        const p = job.progress as { ok?: number; done?: number; total?: number };
-        if (job.status === "running") setJobMsg(`Espionnage ${p.done ?? 0}/${p.total ?? coords.length}`);
-        if (job.status === "completed") {
-          setJobMsg(`Espionnage terminé — ${p.ok ?? 0} OK`);
+        handleSpySendJobUpdate(job, coords.length, setJobMsg, setJobMsgWarn, () => {
           refetch();
           qc.invalidateQueries({ queryKey: ["spy-report-detail"] });
           qc.invalidateQueries({ queryKey: ["galaxy-entries"] });
-        }
-        if (job.status === "failed") setJobMsg(`Erreur : ${job.error}`);
+        });
       });
     },
     onError: (e: Error) => setJobMsg(`Erreur : ${e.message}`),
@@ -166,6 +195,13 @@ export function SpyPage() {
     navigate("/attacks", { state });
   }
 
+  function deleteReports(coords: string[]) {
+    if (!coords.length) return;
+    const label = coords.length === 1 ? `le rapport ${coords[0]}` : `${coords.length} rapports`;
+    if (!window.confirm(`Supprimer ${label} de la liste locale ?`)) return;
+    removeReports.mutate(coords);
+  }
+
   return (
     <div className="page page--table">
       <div className="page-header">
@@ -176,7 +212,12 @@ export function SpyPage() {
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={!sourceCp || respy.isPending}
+                disabled={respy.isPending}
+                title={
+                  sourceCp
+                    ? undefined
+                    : "Planète source non définie — l'espionnage partira quand même, mais choisis un monde dans l'en-tête si les sondes ne partent pas."
+                }
                 onClick={() => respy.mutate([...selected])}
               >
                 <IconText icon={Radar} size={15}>
@@ -186,6 +227,16 @@ export function SpyPage() {
               <button type="button" className="btn" onClick={() => sendToAttacks([...selected])}>
                 <IconText icon={Crosshair} size={15}>
                   Vers attaques ({selected.size})
+                </IconText>
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                disabled={removeReports.isPending}
+                onClick={() => deleteReports([...selected])}
+              >
+                <IconText icon={Trash2} size={15}>
+                  Supprimer ({selected.size})
                 </IconText>
               </button>
             </>
@@ -198,17 +249,38 @@ export function SpyPage() {
         </div>
       </div>
 
-      {jobMsg && <p className="status-msg">{jobMsg}</p>}
+      {jobMsg && <p className={`status-msg${jobMsgWarn ? " status-msg--warn" : ""}`}>{jobMsg}</p>}
+
+      {!sourceCp && planets.length === 0 && (
+        <p className="muted page-meta">
+          Planète source indisponible — connecte-toi et ouvre l&apos;onglet Empire pour charger tes mondes.
+        </p>
+      )}
+      {!sourceCp && planets.length > 0 && (
+        <p className="muted page-meta">
+          Aucune planète source sélectionnée — choisis-en une dans l&apos;en-tête pour envoyer les sondes depuis le bon monde.
+        </p>
+      )}
 
       <div className="filters">
         <label>
-          <input type="checkbox" checked={sansDefense} onChange={(e) => setSansDefense(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={sansDefense}
+            onChange={(e) => setSansDefense(e.target.checked)}
+          />
           Sans défense
         </label>
         <label>
           <input type="checkbox" checked={notAttacked} onChange={(e) => { setNotAttacked(e.target.checked); setPage(1); }} />
           Pas attaqué aujourd&apos;hui
         </label>
+        <select value={inactive} onChange={(e) => { setInactive(e.target.value as InactiveFilter); setPage(1); }}>
+          <option value="">Tous (activité)</option>
+          <option value="false">Actifs</option>
+          <option value="true">Inactifs</option>
+          <option value="attackable">Inactifs attaquables</option>
+        </select>
         <label className="inline-label">
           Date espionnage
           <select
@@ -313,7 +385,9 @@ export function SpyPage() {
                     <td className="col-time" title={r.dateText ?? undefined}>
                       {formatSpyReportDate(r)}
                     </td>
-                    <td className="col-verdict" title={r.verdict ?? ""}>{r.verdict ?? "—"}</td>
+                    <td className="col-verdict" title={r.verdict ?? ""}>
+                      <span className={verdictTone(r.verdict)}>{r.verdict ?? "—"}</span>
+                    </td>
                   </tr>
                 );
               })}
@@ -326,10 +400,12 @@ export function SpyPage() {
             report={activeReport}
             loading={detailQuery.isFetching && !activeReport?.spyData}
             onClose={() => setSelectedCoords(null)}
-            onRespy={(coords) => respy.mutate([coords])}
-            respyDisabled={!sourceCp}
+            onRespy={(coords) => respy.mutate([...coords])}
+            respyDisabled={respy.isPending}
             respyPending={respy.isPending}
             onSendToAttacks={(coords) => sendToAttacks([coords])}
+            onDelete={(coords) => deleteReports([coords])}
+            deletePending={removeReports.isPending}
           />
         )}
       </div>

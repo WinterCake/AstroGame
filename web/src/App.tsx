@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { PlanetSourceProvider } from "./context/PlanetSourceContext";
 import { AttacksPage } from "./pages/AttacksPage";
+import { CombatReportsPage } from "./pages/CombatReportsPage";
 import { EmpirePage } from "./pages/EmpirePage";
 import { GalaxyPage } from "./pages/GalaxyPage";
 import { SpyPage } from "./pages/SpyPage";
@@ -16,6 +17,7 @@ export function App() {
             <Route path="empire" element={<EmpirePage />} />
             <Route path="galaxy" element={<GalaxyPage />} />
             <Route path="spy" element={<SpyPage />} />
+            <Route path="combats" element={<CombatReportsPage />} />
             <Route path="attacks" element={<AttacksPage />} />
           </Route>
         </Routes>

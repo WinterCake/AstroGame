@@ -260,6 +260,17 @@ function storedSystemKeys(entries) {
   return new Set(entries.map((entry) => systemKey(entry.galaxy, entry.system)));
 }
 
+function processedSystemKeys(entries, meta = {}) {
+  const keys = storedSystemKeys(entries);
+  for (const item of meta.failedSystems ?? []) {
+    keys.add(systemKey(item.galaxy, item.system));
+  }
+  for (const key of meta.scannedSystemKeys ?? []) {
+    keys.add(key);
+  }
+  return keys;
+}
+
 function loadExistingPayload(output) {
   if (!existsSync(output)) return null;
 
@@ -311,7 +322,7 @@ export function parseGalaxyScrapeOptions(args) {
   return options;
 }
 
-function buildGalaxyPayload(entries, { limits, targets, scanned, skipped, lastTarget, complete, error, refresh }) {
+function buildGalaxyPayload(entries, { limits, targets, scanned, skipped, lastTarget, complete, error, refresh, failedSystems, scannedSystemKeys }) {
   const players = groupEntriesByPlayer(entries);
   const meta = {
     universe: UNIVERSE,
@@ -323,6 +334,7 @@ function buildGalaxyPayload(entries, { limits, targets, scanned, skipped, lastTa
     systemsInRun: targets.length,
     systemsScannedThisRun: scanned,
     systemsSkippedExisting: skipped ?? 0,
+    systemsFailed: failedSystems?.length ?? 0,
     runComplete: complete,
     refresh: Boolean(refresh),
   };
@@ -333,12 +345,53 @@ function buildGalaxyPayload(entries, { limits, targets, scanned, skipped, lastTa
   if (error) {
     meta.error = error;
   }
+  if (failedSystems?.length) {
+    meta.failedSystems = failedSystems;
+  }
+  if (scannedSystemKeys?.length) {
+    meta.scannedSystemKeys = scannedSystemKeys;
+  }
 
   return { meta, entries, players };
 }
 
 function saveGalaxyPayload(output, payload) {
   writeFileSync(output, JSON.stringify(payload, null, 2), "utf8");
+}
+
+/** Retire des planètes absentes du jeu (coords G:S:P) du cache galaxie local. */
+export function removeGalaxyEntriesByCoords(coords) {
+  const removeSet = new Set(
+    (coords ?? []).map((c) => String(c).trim()).filter((c) => /^\d+:\d+:\d+$/.test(c))
+  );
+  if (!removeSet.size) return { removed: 0, coords: [] };
+
+  const output = paths.galaxy.global();
+  const existing = loadExistingPayload(output);
+  if (!existing) return { removed: 0, coords: [] };
+
+  const removedCoords = existing.entries
+    .filter((entry) => removeSet.has(entry.coords))
+    .map((entry) => entry.coords);
+  if (!removedCoords.length) return { removed: 0, coords: [] };
+
+  const entries = existing.entries.filter((entry) => !removeSet.has(entry.coords));
+  const payload = {
+    ...existing,
+    meta: {
+      ...existing.meta,
+      planetEntries: entries.length,
+      uniquePlayers: groupEntriesByPlayer(entries).length,
+      systemsStored: countStoredSystems(entries),
+      prunedAt: new Date().toISOString(),
+    },
+    entries,
+    players: groupEntriesByPlayer(entries),
+  };
+
+  saveGalaxyPayload(output, payload);
+  log.warn(`Planètes retirées du cache galaxie`, { removed: removedCoords.length, coords: removedCoords });
+  return { removed: removedCoords.length, coords: removedCoords };
 }
 
 export async function scrapeGalaxy(options = {}, client) {
@@ -383,7 +436,7 @@ export async function scrapeGalaxy(options = {}, client) {
         previousEntries: existing.entries.length,
       });
     } else {
-      const done = storedSystemKeys(entries);
+      const done = processedSystemKeys(entries, existing.meta);
       const pending = targets.filter((target) => !done.has(systemKey(target.galaxy, target.system)));
       skippedExisting = targets.length - pending.length;
       targets = pending;
@@ -427,6 +480,8 @@ export async function scrapeGalaxy(options = {}, client) {
 
   let scanned = 0;
   let lastTarget = null;
+  const failedSystems = [...(existing?.meta?.failedSystems ?? [])];
+  const scannedSystemKeys = new Set(existing?.meta?.scannedSystemKeys ?? []);
 
   const persist = (complete, error) => {
     saveGalaxyPayload(
@@ -440,36 +495,48 @@ export async function scrapeGalaxy(options = {}, client) {
         complete,
         error,
         refresh: options.refresh,
+        failedSystems,
+        scannedSystemKeys: [...scannedSystemKeys],
       })
     );
   };
 
-  try {
-    for (const target of targets) {
+  for (const target of targets) {
+    const targetKey = systemKey(target.galaxy, target.system);
+    try {
       const result = await fetchGalaxySystemWithRetry(target.galaxy, target.system, options);
       entries = replaceSystemEntries(entries, target.galaxy, target.system, result.entries);
-      scanned++;
-      lastTarget = target;
-      persist(scanned === targets.length);
-
-      if (scanned % 25 === 0 || scanned === targets.length) {
-        log.info(`Progression ${scanned}/${targets.length} — ${entries.length} planètes joueurs au total`);
-      }
-
-      if (scanned < targets.length) {
-        await sleep(randomDelayMs(options.delayMinMs, options.delayMaxMs));
-      }
+    } catch (error) {
+      failedSystems.push({
+        galaxy: target.galaxy,
+        system: target.system,
+        error: error.message,
+      });
+      entries = replaceSystemEntries(entries, target.galaxy, target.system, []);
+      log.warn(`Skip ${targetKey} — poursuite du scan`, {
+        error: error.message,
+      });
     }
-  } catch (error) {
-    persist(false, error.message);
-    log.warn(`Scan interrompu — sauvegarde partielle (relance la même commande pour reprendre)`, {
-      output: options.output,
-      scanned,
-      entries: entries.length,
-      lastScanned: lastTarget ? `${lastTarget.galaxy}:${lastTarget.system}` : null,
-      error: error.message,
+
+    scannedSystemKeys.add(targetKey);
+
+    scanned++;
+    lastTarget = target;
+    persist(scanned === targets.length);
+
+    if (scanned % 25 === 0 || scanned === targets.length) {
+      log.info(`Progression ${scanned}/${targets.length} — ${entries.length} planètes joueurs au total`);
+    }
+
+    if (scanned < targets.length) {
+      await sleep(randomDelayMs(options.delayMinMs, options.delayMaxMs));
+    }
+  }
+
+  if (failedSystems.length) {
+    log.warn(`Scan terminé avec ${failedSystems.length} système(s) ignoré(s)`, {
+      lastFailed: failedSystems[failedSystems.length - 1],
     });
-    throw error;
   }
 
   log.info(`JSON exporté`, {

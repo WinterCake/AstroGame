@@ -7,6 +7,7 @@ import {
   LogIn,
   Orbit,
   Radar,
+  Swords,
   Wifi,
   WifiOff,
 } from "lucide-react";
@@ -19,6 +20,7 @@ const links = [
   { to: "/empire", label: "Empire", icon: LayoutDashboard },
   { to: "/galaxy", label: "Galaxie", icon: Globe2 },
   { to: "/spy", label: "Espionnage", icon: Radar },
+  { to: "/combats", label: "Combats", icon: Swords },
   { to: "/attacks", label: "Attaques", icon: Crosshair },
 ] as const;
 

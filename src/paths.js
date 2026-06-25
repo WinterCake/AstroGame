@@ -26,7 +26,11 @@ export const paths = {
   spy: {
     reports: () => join(getDataDir(), "spy", "reports.json"),
     lootTargets: () => join(getDataDir(), "spy", "loot-targets.json"),
+    spiedLog: () => join(getDataDir(), "spy", "spied-log.json"),
     reportsExcel: () => join(getDataDir(), "spy", "reports.xlsx"),
+  },
+  combat: {
+    reports: () => join(getDataDir(), "combat", "reports.json"),
   },
   attacks: {
     import: () => join(getDataDir(), "attacks", "import.json"),
@@ -47,6 +51,7 @@ export function ensureDataDirs() {
     join(getDataDir(), "galaxy"),
     paths.galaxy.exportsDir(),
     join(getDataDir(), "spy"),
+    join(getDataDir(), "combat"),
     join(getDataDir(), "empire"),
     paths.attacks.historyDir(),
   ];

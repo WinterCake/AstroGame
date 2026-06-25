@@ -1,17 +1,41 @@
-import { writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import ExcelJS from "exceljs";
+import {
+  emptyAttacksStore,
+  getAttackedTodayCoords,
+  mergeAttackRecords,
+  serializeAttacksStore,
+} from "./attacks-history.js";
 import { getClient } from "./client.js";
 import { paths } from "./paths.js";
+import { normalizeCoordString } from "./spy-send.js";
 import { createLogger } from "./logger.js";
 
 const log = createLogger("spy");
 const SPY_CATEGORY = 0;
+/** Missiles en silo — ne comptent pas comme défense pour le filtre « sans défense ». */
+const MISSILE_ONLY_DEFENSE_IDS = new Set(["502", "503"]);
 
 function sumCategoryValues(category) {
   if (!category) return 0;
   return Object.values(category).reduce((sum, value) => sum + (Number(value) || 0), 0);
+}
+
+export function sumDefenseExcludingMissiles(category) {
+  if (!category) return 0;
+  return Object.entries(category).reduce((sum, [id, value]) => {
+    if (MISSILE_ONLY_DEFENSE_IDS.has(id)) return sum;
+    return sum + (Number(value) || 0);
+  }, 0);
+}
+
+export function getEffectiveDefense(report) {
+  if (report.spyData?.["400"]) {
+    return sumDefenseExcludingMissiles(report.spyData["400"]);
+  }
+  return Number(report.defense) || 0;
 }
 
 function sumResources(category) {
@@ -37,7 +61,7 @@ function buildVerdict(fleetTotal, defenseTotal, lootTotal) {
 }
 
 export function isSansDefense(report) {
-  return (Number(report.fleet) || 0) === 0 && (Number(report.defense) || 0) === 0;
+  return (Number(report.fleet) || 0) === 0 && getEffectiveDefense(report) === 0;
 }
 
 export function isGrosButinSansDefense(report) {
@@ -55,12 +79,98 @@ export function isReportToday(report) {
   );
 }
 
-export function getSpiedTodayCoords(reports) {
+export function getSpiedTodayCoords(reports, extraCoords = null) {
   const coords = new Set();
   for (const report of reports ?? []) {
-    if (isReportToday(report)) coords.add(report.coords);
+    if (isReportToday(report)) coords.add(normalizeCoordString(report.coords));
+  }
+  for (const value of extraCoords ?? []) {
+    const normalized = normalizeCoordString(value);
+    if (normalized) coords.add(normalized);
   }
   return coords;
+}
+
+export function getAllSpiedCoords(reports) {
+  const coords = new Set();
+  for (const report of reports ?? []) {
+    if (report?.coords) coords.add(normalizeCoordString(report.coords));
+  }
+  return coords;
+}
+
+function loadSpiedLogStore() {
+  const path = paths.spy.spiedLog();
+  if (!existsSync(path)) return emptyAttacksStore();
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return emptyAttacksStore();
+  }
+}
+
+/** Marque des coords comme espionnées aujourd'hui (envoi sonde OK, avant sync messagerie). */
+export function recordSpiedSendSuccess(okCoords) {
+  const coords = [...new Set((okCoords ?? []).map(normalizeCoordString).filter(Boolean))];
+  if (!coords.length) return { recorded: 0 };
+
+  const logPath = paths.spy.spiedLog();
+  const merged = mergeAttackRecords(loadSpiedLogStore(), coords, { source: "spy-send" });
+  writeFileSync(logPath, JSON.stringify(serializeAttacksStore(merged, { source: "spy-send" }), null, 2), "utf8");
+
+  const lootPath = paths.spy.lootTargets();
+  if (!existsSync(lootPath)) return { recorded: coords.length };
+
+  const loot = JSON.parse(readFileSync(lootPath, "utf8"));
+  if (!Array.isArray(loot?.reports)) return { recorded: coords.length };
+
+  const now = Math.floor(Date.now() / 1000);
+  const dateText = new Date(now * 1000).toLocaleString("fr-FR", { hour12: false });
+  let touched = 0;
+
+  for (const coord of coords) {
+    const idx = loot.reports.findIndex((r) => normalizeCoordString(r.coords) === coord);
+    if (idx < 0) continue;
+    loot.reports[idx] = { ...loot.reports[idx], timestamp: now, dateText };
+    touched++;
+  }
+
+  if (touched) {
+    writeFileSync(lootPath, JSON.stringify(loot, null, 2), "utf8");
+  }
+
+  return { recorded: coords.length, touched };
+}
+
+export function applySpyHiddenFilter(reports, hiddenCoords) {
+  const hidden = new Set(hiddenCoords ?? []);
+  if (!hidden.size) return reports ?? [];
+  return (reports ?? []).filter((report) => !hidden.has(report.coords));
+}
+
+export function removeSpyReports(data, coords) {
+  const remove = new Set(
+    (coords ?? []).map((c) => String(c).trim()).filter((c) => /^\d+:\d+:\d+$/.test(c))
+  );
+  if (!remove.size) {
+    return { data, removed: 0 };
+  }
+
+  const hidden = new Set(data.meta?.hiddenCoords ?? []);
+  for (const coord of remove) hidden.add(coord);
+
+  const reports = applySpyHiddenFilter(data.reports, hidden);
+  const next = {
+    ...data,
+    meta: {
+      ...data.meta,
+      hiddenCoords: [...hidden],
+      totalReports: reports.length,
+    },
+    reports,
+  };
+
+  return { data: next, removed: remove.size };
 }
 
 export function filterSpyReports(reports, filter) {
@@ -93,7 +203,7 @@ export function summarizeSpyPayload(payload, meta = {}) {
   const coords = `${planet.galaxy}:${planet.system}:${planet.planet}`;
   const loot = sumResources(payload.spyData?.["900"]);
   const fleet = sumCategoryValues(payload.spyData?.["200"]);
-  const defense = sumCategoryValues(payload.spyData?.["400"]);
+  const defense = sumDefenseExcludingMissiles(payload.spyData?.["400"]);
   const buildings = payload.spyData?.["0"] ?? {};
 
   return {
@@ -167,6 +277,41 @@ function isNewerSpyReport(candidate, current) {
   if (candidateDetail !== currentDetail) return candidateDetail;
 
   return Number(candidate.messageId) > Number(current.messageId);
+}
+
+export function isSpyReportComplete(report) {
+  return Boolean(report?.messageId && report?.spyData);
+}
+
+function buildSpyProcessedIndex(reports) {
+  const byMessageId = new Map();
+  for (const report of reports ?? []) {
+    if (!isSpyReportComplete(report)) continue;
+    byMessageId.set(String(report.messageId), report);
+  }
+  return { byMessageId };
+}
+
+function resolveCachedSpyReport(report, index) {
+  if (!report?.messageId) return null;
+  return index.byMessageId.get(String(report.messageId)) ?? null;
+}
+
+export function mergeSpyReports(existing = [], incoming = []) {
+  const byId = new Map((existing ?? []).map((r) => [String(r.messageId), r]));
+  for (const report of incoming ?? []) {
+    if (!report.messageId) continue;
+    const id = String(report.messageId);
+    const prev = byId.get(id);
+    if (!prev || isNewerSpyReport(report, prev)) {
+      byId.set(id, {
+        ...prev,
+        ...report,
+        spyData: report.spyData || prev?.spyData,
+      });
+    }
+  }
+  return dedupeSpyReportsByCoords([...byId.values()]);
 }
 
 function dedupeSpyReportsByCoords(reports) {
@@ -243,22 +388,40 @@ export function parseSpyScrapeOptions(args) {
 
 export async function scrapeSpyReports(options = {}, client) {
   const http = client ?? (await getClient());
+  const processedIndex = buildSpyProcessedIndex(options.existingReports ?? []);
+  const stats = { skipped: 0, newReports: 0 };
   const reports = [];
   let maxPage = 1;
 
+  function ingestPageReports(pageReports) {
+    for (const report of pageReports) {
+      const cached = resolveCachedSpyReport(report, processedIndex);
+      if (cached) {
+        stats.skipped++;
+        reports.push(cached);
+        continue;
+      }
+      stats.newReports++;
+      reports.push(report);
+      if (isSpyReportComplete(report)) {
+        processedIndex.byMessageId.set(String(report.messageId), report);
+      }
+    }
+  }
+
   if (options.page) {
     const result = await fetchSpyReportsPage(http, options.page);
-    reports.push(...result.reports);
+    ingestPageReports(result.reports);
     maxPage = result.maxPage;
   } else {
     const first = await fetchSpyReportsPage(http, 1);
     maxPage = options.maxPages ? Math.min(options.maxPages, first.maxPage) : first.maxPage;
-    reports.push(...first.reports);
+    ingestPageReports(first.reports);
     log.info(`Rapports page 1/${maxPage}`, { count: first.reports.length });
 
     for (let page = 2; page <= maxPage; page++) {
       const result = await fetchSpyReportsPage(http, page);
-      reports.push(...result.reports);
+      ingestPageReports(result.reports);
       log.info(`Rapports page ${page}/${maxPage}`, { count: result.reports.length });
     }
   }
@@ -272,9 +435,15 @@ export async function scrapeSpyReports(options = {}, client) {
       rawReports: reports.length,
       pagesScanned: options.page ? 1 : maxPage,
       sortedBy: "date-desc",
+      newReports: stats.newReports,
+      skippedReports: stats.skipped,
     },
     reports: deduped,
   };
+
+  log.info(
+    `Récupération des rapports d'espionnage terminée — ${deduped.length} rapports, ${stats.newReports} nouveau(x), ${stats.skipped} ignoré(s) (déjà en cache)`
+  );
 
   if (options.output) {
     writeFileSync(resolve(options.output), JSON.stringify(payload, null, 2), "utf8");

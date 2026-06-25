@@ -40,9 +40,12 @@ export function PlanetSourceProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!planets.length) return;
-    if (sourceCp && planets.some((p) => p.cp === sourceCp)) return;
-    const main = planets.find((p) => p.isMain) ?? planets[0];
-    setSourceCpState(main.cp);
+    if (sourceCp != null && planets.some((p) => p.cp === sourceCp)) return;
+    const main =
+      planets.find((p) => p.isMain && p.cp != null) ??
+      planets.find((p) => p.cp != null) ??
+      planets[0];
+    if (main?.cp != null) setSourceCpState(main.cp);
   }, [planets, sourceCp]);
 
   const setSourceCp = (cp: number | null) => {

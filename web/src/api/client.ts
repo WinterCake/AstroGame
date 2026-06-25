@@ -50,7 +50,7 @@ export const client = {
 
   galaxyMeta: () => api<{ exists: boolean; meta?: unknown }>("/api/galaxy/meta"),
   galaxyEntries: (params: URLSearchParams) =>
-    api<{ entries: GalaxyEntry[]; total: number; page: number; totalPages: number; spiedToday?: number }>(
+    api<{ entries: GalaxyEntry[]; total: number; page: number; totalPages: number; spiedToday?: number; allSpied?: number }>(
       `/api/galaxy/entries?${params}`
     ),
 
@@ -61,6 +61,11 @@ export const client = {
   spyReportDetail: (coords: string) =>
     api<{ report: SpyReport }>(`/api/spy/reports/detail?coords=${encodeURIComponent(coords)}`),
   spySync: () => api<{ jobId: string }>("/api/spy/reports/sync", { method: "POST", body: "{}" }),
+  spyReportsUpdate: (body: { remove: string[] }) =>
+    api<{ ok: boolean; removed: number; total: number }>("/api/spy/reports", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
   spySend: (body: {
     coords: string[];
     cp?: number;
@@ -68,6 +73,21 @@ export const client = {
     parallel?: number;
     maxTargets?: number;
   }) => api<{ jobId: string }>("/api/spy/send", { method: "POST", body: JSON.stringify(body) }),
+
+  combatReports: (params: URLSearchParams) =>
+    api<{ reports: CombatReportSummary[]; total: number; meta?: unknown }>(
+      `/api/combat/reports?${params}`
+    ),
+  combatReportDetail: (messageId: string) =>
+    api<{ report: CombatReport }>(
+      `/api/combat/reports/detail?messageId=${encodeURIComponent(messageId)}`
+    ),
+  combatSync: () => api<{ jobId: string }>("/api/combat/reports/sync", { method: "POST", body: "{}" }),
+  combatReportsUpdate: (body: { remove: string[] }) =>
+    api<{ ok: boolean; removed: number; total: number }>("/api/combat/reports", {
+      method: "PATCH",
+      body: JSON.stringify(body),
+    }),
 
   attacksImport: () =>
     api<AttacksImportData>("/api/attacks/import"),
@@ -107,6 +127,7 @@ export type GalaxyEntry = {
   isAttackableInactive: boolean;
   onVacation: boolean;
   spiedToday?: boolean;
+  everSpied?: boolean;
   activityLabel?: string;
   alliance?: { tag: string; name: string };
   moon?: { name: string };
@@ -138,6 +159,42 @@ export type SpyReport = {
   attackedToday?: boolean;
   alreadyAttacked?: boolean;
   spyData?: Record<string, Record<string, number>> | null;
+};
+
+export type CombatReportSummary = {
+  messageId: string;
+  coords: string | null;
+  dateText?: string | null;
+  timestamp?: number | null;
+  subject?: string | null;
+  result?: string | null;
+  outcome?: "W" | "L" | null;
+  attacker?: string | null;
+  defender?: string | null;
+  attackerCoords?: string | null;
+  defenderCoords?: string | null;
+  loot?: number;
+  lootFormatted?: string;
+  lootMetal?: number;
+  lootCrystal?: number;
+  lootDeut?: number;
+  debrisTotal?: number;
+  debrisFormatted?: string;
+  attackerLosses?: number;
+  defenderLosses?: number;
+};
+
+export type CombatReport = CombatReportSummary & {
+  raportHash?: string | null;
+  lootMetal?: number;
+  lootCrystal?: number;
+  lootDeut?: number;
+  debrisMetal?: number;
+  debrisCrystal?: number;
+  battleOutcome?: string | null;
+  moonChance?: string | null;
+  htmlBody?: string | null;
+  fullHtml?: string | null;
 };
 
 export type AttackRecord = {
