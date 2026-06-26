@@ -394,7 +394,8 @@ export function removeGalaxyEntriesByCoords(coords) {
   return { removed: removedCoords.length, coords: removedCoords };
 }
 
-export async function scrapeGalaxy(options = {}, client) {
+export async function scrapeGalaxy(rawOptions = {}, client) {
+  const options = { ...parseGalaxyScrapeOptions([]), ...rawOptions };
   if (!options.output) {
     ensureDataDirs();
     options.output = paths.galaxy.defaultScrape();

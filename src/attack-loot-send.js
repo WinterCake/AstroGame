@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 import { getClient, postForm } from "./client.js";
 import { paths } from "./paths.js";
+import { assertLoggedIn } from "./session-check.js";
 import { isSansDefense } from "./spy-reports.js";
 import {
   extractFleetTiming,
@@ -65,27 +66,26 @@ function parseFleetSlotsFromHtml(html) {
   return { used, max, free: Math.max(0, max - used), slotsKnown: true };
 }
 
+function hasPlanetSelector(html) {
+  const $ = cheerio.load(html);
+  return $("select#planetSelector > option, select#planetSelectorMobile > option").length > 0;
+}
+
 function parseMainPlanetCp(html) {
   const $ = cheerio.load(html);
-  const selectors = ["#planetSelector option", "#planetSelectorMobile option"];
-  for (const selector of selectors) {
-    const main = $(selector)
-      .filter((_, el) => /main\s*plan[eè]te/i.test($(el).text()))
-      .first();
-    if (main.length) {
-      return {
-        cp: Number(main.attr("value")) || null,
-        label: main.text().replace(/\s+/g, " ").trim(),
-        coords: main.text().match(/\[(\d+:\d+:\d+)\]/)?.[1] ?? null,
-      };
-    }
+  for (const selectSelector of ["select#planetSelector", "select#planetSelectorMobile"]) {
+    const options = $(`${selectSelector} > option`);
+    if (!options.length) continue;
+    const main = options.filter((_, el) => /main\s*plan[eè]te/i.test($(el).text())).first();
+    const pick = main.length ? main : options.first();
+    const label = pick.text().replace(/\s+/g, " ").trim();
+    return {
+      cp: Number(pick.attr("value")) || null,
+      label,
+      coords: label.match(/\[(\d+:\d+:\d+)\]/)?.[1] ?? null,
+    };
   }
-  const first = $("#planetSelector option").first();
-  return {
-    cp: Number(first.attr("value")) || null,
-    label: first.text().replace(/\s+/g, " ").trim(),
-    coords: first.text().match(/\[(\d+:\d+:\d+)\]/)?.[1] ?? null,
-  };
+  return { cp: null, label: "", coords: null };
 }
 
 /** Parse les montants Astrogame (ex. data-amount="105.157" → 105157). */
@@ -320,20 +320,43 @@ async function waitForFleetSlot(client, options) {
 }
 
 async function resolveSourcePlanet(client, cpOverride) {
+  const overviewPath = cpOverride ? `game/overview?cp=${cpOverride}` : "game/overview";
   const html = String(
-    (await client.get("game/overview", {
+    (await client.get(overviewPath, {
       headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
     })).data
   );
+
+  try {
+    assertLoggedIn(html);
+  } catch {
+    throw new Error(
+      "Session expirée ou invalide — utilise le bouton Reconnecter en haut de l'interface."
+    );
+  }
+
+  if (!hasPlanetSelector(html)) {
+    throw new Error(
+      "Page jeu inaccessible (sélecteur de planètes introuvable). Reconnecte-toi puis réessaie."
+    );
+  }
+
   if (cpOverride) {
     const planet = parsePlanetByCp(html, cpOverride);
     if (planet.coords) {
       log.info(`Départ : ${planet.label}`);
       return planet;
     }
+    log.warn(`cp=${cpOverride} absent du sélecteur — utilisation directe du cp`);
+    return { cp: Number(cpOverride), label: `Planète ${cpOverride}`, coords: null };
   }
+
   const main = parseMainPlanetCp(html);
-  if (!main.cp) throw new Error("Impossible de détecter la Main Planète (cp).");
+  if (!main.cp) {
+    throw new Error(
+      "Impossible de détecter la planète de départ — choisis une planète dans le formulaire."
+    );
+  }
   log.info(`Départ : ${main.label}`);
   return main;
 }

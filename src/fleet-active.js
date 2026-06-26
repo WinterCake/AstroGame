@@ -81,8 +81,8 @@ export function coordsFromPlace(place) {
 
 export function parsePlanetByCp(html, cp) {
   const $ = cheerio.load(html);
-  for (const selector of ["#planetSelector option", "#planetSelectorMobile option"]) {
-    const opt = $(selector)
+  for (const selectSelector of ["select#planetSelector", "select#planetSelectorMobile"]) {
+    const opt = $(`${selectSelector} > option`)
       .filter((_, el) => Number($(el).attr("value")) === Number(cp))
       .first();
     if (!opt.length) continue;

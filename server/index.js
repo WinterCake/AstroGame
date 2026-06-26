@@ -30,7 +30,8 @@ import {
   removeAttackCoords,
   serializeAttacksStore,
 } from "../src/attacks-history.js";
-import { getClient, refreshClient } from "../src/client.js";
+import { getClient, refreshClient, createClient } from "../src/client.js";
+import { isLoggedIn } from "../src/session-check.js";
 import { ensureDataDirs, paths } from "../src/paths.js";
 import {
   fetchFleetSlotStatus,
@@ -227,14 +228,16 @@ function filterGalaxyEntries(entries, query) {
   }
 
   if (query.search) {
-    const term = String(query.search).toLowerCase();
-    filtered = filtered.filter(
-      (e) =>
-        e.coords?.includes(term) ||
-        e.username?.toLowerCase().includes(term) ||
-        e.planetName?.toLowerCase().includes(term) ||
-        e.alliance?.tag?.toLowerCase().includes(term)
-    );
+    const term = String(query.search).trim().toLowerCase();
+    if (term) {
+      filtered = filtered.filter(
+        (e) =>
+          e.coords?.toLowerCase().includes(term) ||
+          e.username?.toLowerCase().includes(term) ||
+          e.planetName?.toLowerCase().includes(term) ||
+          e.alliance?.tag?.toLowerCase().includes(term)
+      );
+    }
   }
 
   return filtered;
@@ -257,19 +260,45 @@ function sortRows(rows, sortBy, sortDir, accessors = {}) {
 
 // --- Session ---
 
-app.get("/api/session", async () => {
+async function getSessionStatus() {
+  const session = Session.loadFromFile() ?? new Session();
+  const envCookies = process.env.ASTROGAME_COOKIES?.trim();
+  if (envCookies) session.loadFromHeader(envCookies);
+
+  const cookies = session.cookies.size;
+  const hasCookies = Boolean(session.toHeader());
+  const { username, password } = getCredentials();
+  const canLogin = Boolean(username && password);
+
+  if (!hasCookies) {
+    return { ok: true, connected: false, valid: false, cookies: 0, canLogin };
+  }
+
   try {
-    const session = Session.loadFromFile() ?? new Session();
-    const envCookies = process.env.ASTROGAME_COOKIES?.trim();
-    if (envCookies) session.loadFromHeader(envCookies);
-    const hasCookies = Boolean(session.toHeader());
+    const client = createClient(session);
+    const overview = await client.get("game/overview", {
+      headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
+      timeout: 15_000,
+    });
+    const valid = isLoggedIn(String(overview.data));
+    return { ok: true, connected: true, valid, cookies, canLogin };
+  } catch (error) {
     return {
       ok: true,
-      connected: hasCookies,
-      cookies: session.cookies.size,
+      connected: true,
+      valid: false,
+      cookies,
+      canLogin,
+      error: error.message,
     };
+  }
+}
+
+app.get("/api/session", async () => {
+  try {
+    return await getSessionStatus();
   } catch (error) {
-    return { ok: false, connected: false, error: error.message };
+    return { ok: false, connected: false, valid: false, error: error.message };
   }
 });
 
@@ -392,8 +421,10 @@ app.get("/api/galaxy/players", async (req) => {
   }
 
   if (req.query.search) {
-    const term = String(req.query.search).toLowerCase();
-    players = players.filter((p) => p.username?.toLowerCase().includes(term));
+    const term = String(req.query.search).trim().toLowerCase();
+    if (term) {
+      players = players.filter((p) => p.username?.toLowerCase().includes(term));
+    }
   }
 
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -956,6 +987,10 @@ app.post("/api/attacks/send", async (req, reply) => {
   if (!coords.length) {
     reply.code(400);
     return { error: "coords requis" };
+  }
+  if (!body.cp) {
+    reply.code(400);
+    return { error: "Planète de départ requise — sélectionne un monde dans l'onglet Attaques." };
   }
 
   const job = createJob("attack-send", { total: coords.length, done: 0 });

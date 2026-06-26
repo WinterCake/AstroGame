@@ -37,17 +37,19 @@ export function GalaxyPage() {
   const [maxTargets, setMaxTargets] = useState(() => localStorage.getItem(MAX_TARGETS_KEY) ?? "");
   const { sortKey, sortDir, toggle } = useSortState<GalaxySortKey>("coords");
 
+  const trimmedSearch = search.trim();
+
   const params = useMemo(() => {
     const p = new URLSearchParams({ page: String(page), pageSize: "100" });
     if (inactive) p.set("inactive", inactive);
     if (notSpiedToday || neverSpied) p.set("notSpiedToday", "true");
     if (neverSpied) p.set("neverSpied", "true");
-    if (search) p.set("search", search);
+    if (trimmedSearch) p.set("search", trimmedSearch);
     if (galaxy) p.set("galaxy", galaxy);
     p.set("sortBy", sortKey);
     p.set("sortDir", sortDir);
     return p;
-  }, [page, inactive, notSpiedToday, neverSpied, search, galaxy, sortKey, sortDir]);
+  }, [page, inactive, notSpiedToday, neverSpied, trimmedSearch, galaxy, sortKey, sortDir]);
 
   const meta = useQuery({ queryKey: ["galaxy-meta"], queryFn: client.galaxyMeta });
   const { data, isLoading, refetch } = useQuery({
@@ -174,6 +176,13 @@ export function GalaxyPage() {
           placeholder="Recherche joueur / coords"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          onBlur={(e) => {
+            const trimmed = e.target.value.trim();
+            if (trimmed !== search) {
+              setSearch(trimmed);
+              setPage(1);
+            }
+          }}
         />
         <select value={inactive} onChange={(e) => { setInactive(e.target.value); setPage(1); }}>
           <option value="">Tous</option>

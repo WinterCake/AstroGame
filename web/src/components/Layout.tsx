@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -26,6 +27,7 @@ const links = [
 
 export function Layout() {
   const qc = useQueryClient();
+  const [loginMsg, setLoginMsg] = useState<string | null>(null);
   const { data: session, refetch } = useQuery({
     queryKey: ["session"],
     queryFn: client.session,
@@ -35,14 +37,24 @@ export function Layout() {
   const login = useMutation({
     mutationFn: client.login,
     onSuccess: () => {
+      setLoginMsg(null);
       qc.invalidateQueries({ queryKey: ["session"] });
       qc.invalidateQueries({ queryKey: ["empire-planets"] });
       refetch();
     },
+    onError: (error: Error) => {
+      setLoginMsg(error.message);
+    },
   });
 
   const { planets, sourceCp, setSourceCp, sourcePlanet } = usePlanetSource();
-  const connected = session?.connected;
+  const sessionValid = session?.valid === true;
+  const sessionExpired = session?.connected && !sessionValid;
+  const sessionLabel = sessionValid
+    ? "Session active"
+    : sessionExpired
+      ? "Session expirée"
+      : "Non connecté";
 
   return (
     <div className="app">
@@ -67,19 +79,37 @@ export function Layout() {
 
       <div className="main">
         <header className="header">
-          <div className="session">
-            {connected ? (
-              <Wifi size={15} className="icon icon-ok" aria-hidden />
-            ) : (
-              <WifiOff size={15} className="icon icon-ko" aria-hidden />
-            )}
-            {connected ? "Session active" : "Non connecté"}
-            {!connected && (
-              <button type="button" className="btn btn-sm" onClick={() => login.mutate()} disabled={login.isPending}>
+          <div className="header-left">
+            <div className="session">
+              {sessionValid ? (
+                <Wifi size={15} className="icon icon-ok" aria-hidden />
+              ) : (
+                <WifiOff size={15} className="icon icon-ko" aria-hidden />
+              )}
+              <span className={sessionExpired ? "session-status session-status--warn" : "session-status"}>
+                {sessionLabel}
+              </span>
+              <button
+                type="button"
+                className="btn btn-sm"
+                onClick={() => login.mutate()}
+                disabled={login.isPending || session?.canLogin === false}
+                title={
+                  session?.canLogin === false
+                    ? "Renseigne ASTROGAME_USERNAME et ASTROGAME_PASSWORD dans .env"
+                    : "Reconnecter au jeu Astrogame"
+                }
+              >
                 <IconText icon={LogIn} size={14}>
                   {login.isPending ? "Connexion…" : "Reconnecter"}
                 </IconText>
               </button>
+            </div>
+            {loginMsg && <p className="session-error">{loginMsg}</p>}
+            {session?.canLogin === false && !sessionValid && (
+              <p className="session-error">
+                Identifiants manquants — ajoute ASTROGAME_USERNAME et ASTROGAME_PASSWORD dans <code>.env</code>.
+              </p>
             )}
           </div>
 

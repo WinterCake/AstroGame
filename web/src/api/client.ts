@@ -8,6 +8,8 @@ export type Planet = {
 export type SessionStatus = {
   ok: boolean;
   connected: boolean;
+  valid?: boolean;
+  canLogin?: boolean;
   error?: string;
   cookies?: number;
 };

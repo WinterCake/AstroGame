@@ -1,89 +1,45 @@
 {
-  "scannedAt": "2026-06-23T07:56:11.560Z",
+  "scannedAt": "2026-06-26T18:37:02.573Z",
   "empire": {
-    "metal": 81659466049,
-    "crystal": 75239143936,
-    "deut": 34217616565,
-    "total": 191116226550
+    "metal": 7399601528,
+    "crystal": 6884041850,
+    "deut": 3739454532,
+    "total": 18023097910
   },
   "planets": [
-    {
-      "cp": 3375059,
-      "coords": "1:217:15",
-      "label": "Main Planète [1:217:15]",
-      "isMain": true,
-      "isMoon": false,
-      "metal": 9861850755,
-      "crystal": 11580940458,
-      "deut": 8710363098,
-      "total": 30153154311,
-      "ships": {
-        "ship202": 246633,
-        "ship210": 9970,
-        "ship212": 50000
-      }
-    },
-    {
-      "cp": 3376469,
-      "coords": "5:65:6",
-      "label": "Colonie [5:65:6]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 6914427958,
-      "crystal": 5061799079,
-      "deut": 2114736073,
-      "total": 14090963110,
-      "ships": {
-        "ship202": 10000,
-        "ship210": 1000,
-        "ship212": 5000
-      }
-    },
-    {
-      "cp": 3377841,
-      "coords": "5:65:7",
-      "label": "Colonie [5:65:7]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 6155955737,
-      "crystal": 5059637084,
-      "deut": 1618181847,
-      "total": 12833774668,
-      "ships": {
-        "ship202": 10000,
-        "ship210": 1000,
-        "ship212": 2000
-      }
-    },
-    {
-      "cp": 3378400,
-      "coords": "3:206:6",
-      "label": "Colonie [3:206:6]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 7309265246,
-      "crystal": 5674563083,
-      "deut": 2127756281,
-      "total": 15111584610,
-      "ships": {
-        "ship202": 10000,
-        "ship203": 1000,
-        "ship210": 1000,
-        "ship212": 7157
-      }
-    },
     {
       "cp": 3378403,
       "coords": "1:65:15",
       "label": "Colonie [1:65:15]",
       "isMain": false,
       "isMoon": false,
-      "metal": 11351101512,
-      "crystal": 11325109249,
-      "deut": 4320325632,
-      "total": 26996536393,
+      "metal": 612651226,
+      "crystal": 565577026,
+      "deut": 275561580,
+      "total": 1453789832,
       "ships": {
-        "ship212": 20000
+        "ship202": 100000,
+        "ship212": 20000,
+        "ship214": 1
+      }
+    },
+    {
+      "cp": 3375059,
+      "coords": "1:217:15",
+      "label": "Main Planète [1:217:15]",
+      "isMain": true,
+      "isMoon": false,
+      "metal": 772776256,
+      "crystal": 711768271,
+      "deut": 392337212,
+      "total": 1876881739,
+      "ships": {
+        "ship202": 244412,
+        "ship203": 1,
+        "ship210": 8620,
+        "ship212": 50000,
+        "ship214": 100,
+        "ship217": 11
       }
     },
     {
@@ -92,67 +48,14 @@
       "label": "Colonie [2:217:15]",
       "isMain": false,
       "isMoon": false,
-      "metal": 4874613935,
-      "crystal": 5056610301,
-      "deut": 3134759091,
-      "total": 13065983327,
+      "metal": 545359852,
+      "crystal": 565721159,
+      "deut": 350709159,
+      "total": 1461790170,
       "ships": {
         "ship202": 20000,
         "ship210": 2000,
         "ship212": 22000
-      }
-    },
-    {
-      "cp": 3380116,
-      "coords": "4:36:7",
-      "label": "Colonie [4:36:7]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 6149467301,
-      "crystal": 5670358865,
-      "deut": 2122536096,
-      "total": 13942362262,
-      "ships": {
-        "ship202": 20000,
-        "ship203": 2000,
-        "ship209": 100000,
-        "ship210": 100197,
-        "ship212": 5020
-      }
-    },
-    {
-      "cp": 3380121,
-      "coords": "6:147:7",
-      "label": "Colonie [6:147:7]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 8809749770,
-      "crystal": 8132836216,
-      "deut": 3127822306,
-      "total": 20070408292,
-      "ships": {
-        "ship202": 10000,
-        "ship209": 71575,
-        "ship212": 5000
-      }
-    },
-    {
-      "cp": 3392969,
-      "coords": "4:147:6",
-      "label": "Colonie [4:147:6]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 6899070877,
-      "crystal": 5666154646,
-      "deut": 2308840760,
-      "total": 14874066283,
-      "ships": {
-        "ship202": 55658,
-        "ship203": 19190,
-        "ship206": 4054,
-        "ship209": 1067,
-        "ship210": 19612,
-        "ship212": 2000
       }
     },
     {
@@ -161,12 +64,12 @@
       "label": "Colonie [3:74:7]",
       "isMain": false,
       "isMoon": false,
-      "metal": 7197121819,
-      "crystal": 6352418541,
-      "deut": 2171255315,
-      "total": 15720795675,
+      "metal": 612963484,
+      "crystal": 711949619,
+      "deut": 243344229,
+      "total": 1568257332,
       "ships": {
-        "ship202": 10000,
+        "ship202": 30000,
         "ship203": 1000,
         "ship212": 2500
       }
@@ -177,13 +80,119 @@
       "label": "Colonie [3:74:8]",
       "isMain": false,
       "isMoon": false,
-      "metal": 6136841139,
-      "crystal": 5658716414,
-      "deut": 2461040066,
-      "total": 14256597619,
+      "metal": 688476591,
+      "crystal": 634836995,
+      "deut": 276097822,
+      "total": 1599411408,
+      "ships": {
+        "ship202": 20000,
+        "ship212": 20000
+      }
+    },
+    {
+      "cp": 3378400,
+      "coords": "3:206:6",
+      "label": "Colonie [3:206:6]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 688476591,
+      "crystal": 634836995,
+      "deut": 238040953,
+      "total": 1561354539,
       "ships": {
         "ship202": 10000,
+        "ship203": 1000,
+        "ship210": 1000,
+        "ship212": 7157
+      }
+    },
+    {
+      "cp": 3392969,
+      "coords": "4:147:6",
+      "label": "Colonie [4:147:6]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 772973153,
+      "crystal": 634836995,
+      "deut": 258682938,
+      "total": 1666493086,
+      "ships": {
+        "ship202": 55658,
+        "ship203": 19190,
+        "ship206": 4054,
+        "ship209": 1067,
+        "ship210": 19612,
+        "ship212": 2000
+      }
+    },
+    {
+      "cp": 3377841,
+      "coords": "4:239:15",
+      "label": "Colonie [4:239:15]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 688651948,
+      "crystal": 634998685,
+      "deut": 333076320,
+      "total": 1656726953,
+      "ships": {
+        "ship202": 163000,
+        "ship203": 20000,
+        "ship210": 19820,
         "ship212": 20000
+      }
+    },
+    {
+      "cp": 3376469,
+      "coords": "5:65:6",
+      "label": "Colonie [5:65:6]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 773170039,
+      "crystal": 566009425,
+      "deut": 236469391,
+      "total": 1575648855,
+      "ships": {
+        "ship202": 20000,
+        "ship207": 24090,
+        "ship212": 20000
+      }
+    },
+    {
+      "cp": 3380121,
+      "coords": "6:147:7",
+      "label": "Colonie [6:147:7]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 613275743,
+      "crystal": 566153558,
+      "deut": 217738029,
+      "total": 1397167330,
+      "ships": {
+        "ship202": 110000,
+        "ship209": 71575,
+        "ship212": 5000
+      }
+    },
+    {
+      "cp": 3380116,
+      "coords": "6:310:14",
+      "label": "Colonie [6:310:14]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 630826645,
+      "crystal": 657353122,
+      "deut": 917396899,
+      "total": 2205576666,
+      "ships": {
+        "ship202": 40289,
+        "ship203": 527,
+        "ship207": 1817396,
+        "ship208": 5,
+        "ship209": 20000,
+        "ship210": 26271,
+        "ship212": 28200,
+        "ship214": 86
       }
     }
   ]

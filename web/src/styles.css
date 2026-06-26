@@ -95,7 +95,7 @@ body,
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.75rem 1.25rem;
@@ -103,10 +103,29 @@ body,
   background: var(--surface);
 }
 
+.header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .session {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.session-status--warn {
+  color: var(--warn, #e8a838);
+}
+
+.session-error {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--danger, #f07178);
+  max-width: 42rem;
 }
 
 .icon-text {
@@ -198,6 +217,17 @@ body,
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
+}
+
+.form-block .source-select--inline {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+}
+
+
+.source-select--inline select {
+  max-width: 100%;
 }
 
 .source-select select {

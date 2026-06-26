@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Crosshair, FolderInput, ListChecks, Radar, Rocket, Trash2 } from "lucide-react";
+import { Crosshair, FolderInput, ListChecks, Orbit, Radar, Rocket, Trash2 } from "lucide-react";
 import {
   client,
   watchJob,
@@ -46,7 +46,7 @@ export function AttacksPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const qc = useQueryClient();
-  const { sourceCp } = usePlanetSource();
+  const { sourceCp, setSourceCp, sourcePlanet, planets } = usePlanetSource();
   const [coordsText, setCoordsText] = useState("");
   const [preview, setPreview] = useState<AttackTarget[] | null>(null);
   const [jobMsg, setJobMsg] = useState<string | null>(null);
@@ -56,6 +56,10 @@ export function AttacksPage() {
   const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
   const [lastSendReport, setLastSendReport] = useState<AttackSendPayload | null>(null);
   const parallel = localStorage.getItem(PARALLEL_KEY) ?? "13";
+
+  useEffect(() => {
+    setPreview(null);
+  }, [sourceCp]);
 
   useEffect(() => {
     if (!isAttacksRouteState(location.state)) return;
@@ -219,6 +223,25 @@ export function AttacksPage() {
       {jobMsg && <p className={`status-msg${jobMsgWarn ? " status-msg--warn" : ""}`}>{jobMsg}</p>}
 
       <div className="form-block form-block--attacks">
+        <label className="source-select source-select--inline">
+          <IconText icon={Orbit} size={15}>
+            Planète de départ
+          </IconText>
+          <select
+            value={sourceCp ?? ""}
+            onChange={(e) => setSourceCp(Number(e.target.value) || null)}
+            disabled={!planets.length}
+          >
+            {!planets.length && <option value="">Aucun monde chargé</option>}
+            {planets.map((p) => (
+              <option key={p.cp ?? p.coords} value={p.cp ?? ""}>
+                {p.label}
+              </option>
+            ))}
+          </select>
+          {sourcePlanet && <span className="muted">{sourcePlanet.coords}</span>}
+        </label>
+
         <label>
           Coordonnées (une par ligne ou séparées par espace)
           <textarea
@@ -235,7 +258,12 @@ export function AttacksPage() {
         </label>
 
         <div className="actions">
-          <button type="button" className="btn" onClick={() => previewMutation.mutate()} disabled={previewMutation.isPending}>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => previewMutation.mutate()}
+            disabled={previewMutation.isPending || !sourceCp}
+          >
             <IconText icon={ListChecks} size={15}>
               Prévisualiser
             </IconText>
@@ -256,7 +284,15 @@ export function AttacksPage() {
       <div className="page-attacks-upper">
       {preview && (
         <div>
-          <h2>Preview — {preview.length} cible(s)</h2>
+          <h2>
+            Preview — {preview.length} cible(s)
+            {sourcePlanet && (
+              <span className="muted history-subtitle">
+                {" "}
+                — départ {sourcePlanet.label} ({sourcePlanet.coords})
+              </span>
+            )}
+          </h2>
           <div className="table-wrap">
             <table className="data-table">
               <colgroup>
