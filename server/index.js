@@ -9,7 +9,8 @@ import { loginFromEnv } from "../src/auth.js";
 import { getCredentials } from "../src/config.js";
 import { Session } from "../src/session.js";
 import { getBuildings } from "../src/buildings.js";
-import { listEmpirePlanets, scanEmpireResources, dedupePlanets, dedupePlanetsByCoords } from "../src/empire.js";
+import { listEmpirePlanets, scanEmpireResources, dedupePlanets, dedupePlanetsByCoords, isMoonPlanet } from "../src/empire.js";
+import { sendAllResourcesToPlanet } from "../src/empire-consolidate.js";
 import { scrapeGalaxy } from "../src/galaxy.js";
 import { groupEntriesByPlayer } from "../src/galaxy.js";
 import {
@@ -359,6 +360,48 @@ app.get("/api/empire/buildings", async (req, reply) => {
     reply.code(500);
     return { error: error.message };
   }
+});
+
+app.post("/api/empire/consolidate", async (req, reply) => {
+  const targetCp = Number(req.body?.targetCp);
+  if (!targetCp) {
+    reply.code(400);
+    return { error: "targetCp requis (planète destination)" };
+  }
+
+  const snapshot = loadJson(paths.empire.snapshot());
+  let planets = snapshot?.planets ?? [];
+  if (Array.isArray(planets)) {
+    planets = dedupePlanetsByCoords(dedupePlanets(planets)).map((p) => ({
+      ...p,
+      isMoon: p.isMoon ?? isMoonPlanet(p),
+    }));
+  }
+  if (!planets.length) {
+    reply.code(400);
+    return { error: "Aucun snapshot empire — lance un scan d'abord." };
+  }
+
+  const job = createJob("empire-consolidate", { message: "Démarrage…" });
+  runJob(job.id, async (onProgress) => {
+    const client = await getClient();
+    const result = await sendAllResourcesToPlanet(
+      {
+        targetCp,
+        planets,
+        onPlanet: (progress) => onProgress(progress),
+      },
+      client
+    );
+    onProgress({
+      message: `${result.sent} transport(s) envoyé(s) vers ${result.targetCoords}`,
+      sent: result.sent,
+      sources: result.sources,
+    });
+    return result;
+  }).catch(() => {});
+
+  return { jobId: job.id };
 });
 
 // --- Galaxy ---

@@ -1,8 +1,28 @@
 import { writeFileSync } from "node:fs";
 import * as cheerio from "cheerio";
 import { parseGameAmount } from "./attack-loot-send.js";
+import { parseBuildingsPage } from "./buildings.js";
 import { getClient } from "./client.js";
 import { ensureDataDirs, paths } from "./paths.js";
+
+export const MINE_BUILDING_IDS = {
+  metal: 1,
+  crystal: 2,
+  deut: 3,
+};
+
+export function extractMineLevels(buildings) {
+  const byId = new Map((buildings ?? []).map((b) => [b.id, Number(b.level) || 0]));
+  const metalMine = byId.get(MINE_BUILDING_IDS.metal) ?? 0;
+  const crystalMine = byId.get(MINE_BUILDING_IDS.crystal) ?? 0;
+  const deutMine = byId.get(MINE_BUILDING_IDS.deut) ?? 0;
+  return {
+    metalMine,
+    crystalMine,
+    deutMine,
+    minesTotal: metalMine + crystalMine + deutMine,
+  };
+}
 
 export function parseResourcesFromHtml(html) {
   const $ = cheerio.load(html);
@@ -126,25 +146,29 @@ export async function scanEmpireResources(client, options = {}) {
   const empire = { metal: 0, crystal: 0, deut: 0, total: 0 };
 
   for (const planet of planets) {
-    const [ovRes, fleetRes] = await Promise.all([
+    const [ovRes, fleetRes, buildRes] = await Promise.all([
       http.get(`game/overview?cp=${planet.cp}`, {
         headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
       }),
       http.get(`game/fleetTable?cp=${planet.cp}`, {
         headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
       }),
+      http.get(`game/buildings?cp=${planet.cp}`, {
+        headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
+      }),
     ]);
 
     const res = parseResourcesFromHtml(String(ovRes.data));
     const ships = parseShipsFromHtml(String(fleetRes.data));
+    const mines = extractMineLevels(parseBuildingsPage(String(buildRes.data)).buildings);
 
     empire.metal += res.metal;
     empire.crystal += res.crystal;
     empire.deut += res.deut;
     empire.total += res.total;
 
-    rows.push({ ...planet, ...res, ships });
-    options.onPlanet?.({ planet, res, ships, index: rows.length, total: planets.length });
+    rows.push({ ...planet, ...res, ships, ...mines });
+    options.onPlanet?.({ planet, res, ships, mines, index: rows.length, total: planets.length });
   }
 
   const payload = {

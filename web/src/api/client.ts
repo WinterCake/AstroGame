@@ -48,6 +48,11 @@ export const client = {
   empirePlanets: () => api<{ planets: Planet[] }>("/api/empire/planets"),
   empireSnapshot: () => api<{ snapshot: unknown }>("/api/empire/snapshot"),
   empireScan: () => api<{ jobId: string }>("/api/empire/scan", { method: "POST" }),
+  empireConsolidate: (body: { targetCp: number }) =>
+    api<{ jobId: string }>("/api/empire/consolidate", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   empireBuildings: (cp: number) => api<unknown>(`/api/empire/buildings?cp=${cp}`),
 
   galaxyMeta: () => api<{ exists: boolean; meta?: unknown }>("/api/galaxy/meta"),
