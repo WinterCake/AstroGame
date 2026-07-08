@@ -118,28 +118,67 @@ export function recordSpiedSendSuccess(okCoords) {
   const merged = mergeAttackRecords(loadSpiedLogStore(), coords, { source: "spy-send" });
   writeFileSync(logPath, JSON.stringify(serializeAttacksStore(merged, { source: "spy-send" }), null, 2), "utf8");
 
-  const lootPath = paths.spy.lootTargets();
-  if (!existsSync(lootPath)) return { recorded: coords.length };
+  return { recorded: coords.length };
+}
 
-  const loot = JSON.parse(readFileSync(lootPath, "utf8"));
-  if (!Array.isArray(loot?.reports)) return { recorded: coords.length };
+export function parseGalaxyPoints(value) {
+  if (value == null) return 0;
+  const raw = String(value).trim();
+  if (!raw) return 0;
+  let thousands;
+  if (/^\d{1,3}(\.\d{3})+$/.test(raw)) {
+    thousands = Number(raw.replace(/\./g, ""));
+  } else {
+    const digits = raw.replace(/[^\d]/g, "");
+    thousands = digits ? Number(digits) : Number(raw) || 0;
+  }
+  // L'API galaxie Astrogame affiche les points joueur en milliers (ex. "50.131" → ~50 M).
+  return thousands * 1000;
+}
 
-  const now = Math.floor(Date.now() / 1000);
-  const dateText = new Date(now * 1000).toLocaleString("fr-FR", { hour12: false });
-  let touched = 0;
+/** Rapport espionnage incohérent avec la galaxie (compte crashé, planète recyclée, cache périmé). */
+export function isStaleSpyReport(report, galaxyEntry) {
+  if (!report?.coords) return false;
 
-  for (const coord of coords) {
-    const idx = loot.reports.findIndex((r) => normalizeCoordString(r.coords) === coord);
-    if (idx < 0) continue;
-    loot.reports[idx] = { ...loot.reports[idx], timestamp: now, dateText };
-    touched++;
+  if (galaxyEntry?.planetId && report.planetId) {
+    if (String(galaxyEntry.planetId) !== String(report.planetId)) return true;
+  }
+  if (galaxyEntry?.username && report.username) {
+    if (String(galaxyEntry.username).toLowerCase() !== String(report.username).toLowerCase()) return true;
   }
 
-  if (touched) {
-    writeFileSync(lootPath, JSON.stringify(loot, null, 2), "utf8");
-  }
+  const points = parseGalaxyPoints(galaxyEntry?.points);
+  const loot = Number(report.loot) || 0;
 
-  return { recorded: coords.length, touched };
+  // Compte très faible avec butin énorme (ex. planète vidée après attaque, cache espionnage ancien).
+  if (points > 0 && points < 500_000 && loot >= 500_000_000) return true;
+  return false;
+}
+
+export function purgeStaleSpyReports(data, galaxyEntries = []) {
+  const galaxyByCoord = new Map(
+    (galaxyEntries ?? []).map((entry) => [normalizeCoordString(entry.coords), entry])
+  );
+  const removed = [];
+  const reports = (data?.reports ?? []).filter((report) => {
+    const galaxyEntry = galaxyByCoord.get(normalizeCoordString(report.coords));
+    if (!isStaleSpyReport(report, galaxyEntry)) return true;
+    removed.push(report.coords);
+    return false;
+  });
+
+  return {
+    data: {
+      ...data,
+      meta: {
+        ...data?.meta,
+        totalReports: reports.length,
+        stalePurgedAt: new Date().toISOString(),
+      },
+      reports,
+    },
+    removed,
+  };
 }
 
 export function applySpyHiddenFilter(reports, hiddenCoords) {
@@ -268,6 +307,12 @@ export function parseSpyReportsHtml(html) {
 }
 
 function isNewerSpyReport(candidate, current) {
+  const candidateId = Number(candidate.messageId) || 0;
+  const currentId = Number(current.messageId) || 0;
+  if (candidateId && currentId && candidateId !== currentId) {
+    return candidateId > currentId;
+  }
+
   const candidateTs = Number(candidate.timestamp) || 0;
   const currentTs = Number(current.timestamp) || 0;
   if (candidateTs !== currentTs) return candidateTs > currentTs;
@@ -276,7 +321,7 @@ function isNewerSpyReport(candidate, current) {
   const currentDetail = Boolean(current.spyData);
   if (candidateDetail !== currentDetail) return candidateDetail;
 
-  return Number(candidate.messageId) > Number(current.messageId);
+  return candidateId > currentId;
 }
 
 export function isSpyReportComplete(report) {
@@ -396,12 +441,10 @@ export async function scrapeSpyReports(options = {}, client) {
   function ingestPageReports(pageReports) {
     for (const report of pageReports) {
       const cached = resolveCachedSpyReport(report, processedIndex);
-      if (cached) {
-        stats.skipped++;
-        reports.push(cached);
-        continue;
-      }
-      stats.newReports++;
+      if (cached) stats.skipped++;
+      else stats.newReports++;
+
+      // Toujours garder le parse HTML frais (le cache servait d'ancienne version identique messageId).
       reports.push(report);
       if (isSpyReportComplete(report)) {
         processedIndex.byMessageId.set(String(report.messageId), report);

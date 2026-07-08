@@ -14,7 +14,6 @@ import {
   toggleTableRow,
 } from "../utils/table-selection";
 
-const PARALLEL_KEY = "astrogame-spy-parallel";
 const MAX_TARGETS_KEY = "astrogame-spy-max-targets";
 
 type GalaxySortKey = "coords" | "username" | "rank" | "points" | "planetName" | "alliance";
@@ -33,7 +32,6 @@ export function GalaxyPage() {
   const [jobMsg, setJobMsg] = useState<string | null>(null);
   const [jobMsgWarn, setJobMsgWarn] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
-  const [parallel, setParallel] = useState(() => localStorage.getItem(PARALLEL_KEY) ?? "13");
   const [maxTargets, setMaxTargets] = useState(() => localStorage.getItem(MAX_TARGETS_KEY) ?? "");
   const { sortKey, sortDir, toggle } = useSortState<GalaxySortKey>("coords");
 
@@ -65,7 +63,6 @@ export function GalaxyPage() {
       return client.spySend({
         coords: toSend,
         cp: sourceCp ?? undefined,
-        parallel: Number(parallel) || 13,
         maxTargets: max,
       });
     },
@@ -116,11 +113,6 @@ export function GalaxyPage() {
 
   function toggleAllVisible() {
     toggleAllTableRows(entries, (entry) => entry.coords, selected, setSelected);
-  }
-
-  function saveParallel(v: string) {
-    setParallel(v);
-    localStorage.setItem(PARALLEL_KEY, v);
   }
 
   function saveMaxTargets(v: string) {
@@ -217,18 +209,6 @@ export function GalaxyPage() {
           onChange={(e) => { setGalaxy(e.target.value); setPage(1); }}
           style={{ width: 80 }}
         />
-        <label className="inline-label">
-          Espionnages simultanés
-          <input
-            type="number"
-            min={1}
-            max={50}
-            value={parallel}
-            onChange={(e) => saveParallel(e.target.value)}
-            style={{ width: 64 }}
-            title="Nombre de sondes envoyées en parallèle (slots flotte)"
-          />
-        </label>
         <label className="inline-label">
           Max cibles
           <input

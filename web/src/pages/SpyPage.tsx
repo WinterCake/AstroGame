@@ -22,13 +22,10 @@ type SpySortKey = "coords" | "username" | "loot" | "rank" | "timestamp";
 type SpiedDateFilter = "" | "today" | "not-today";
 type InactiveFilter = "" | "true" | "false" | "attackable";
 
-const PARALLEL_KEY = "astrogame-spy-parallel";
-
 export function SpyPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { sourceCp, planets } = usePlanetSource();
-  const parallel = localStorage.getItem(PARALLEL_KEY) ?? "13";
   const [page, setPage] = useState(1);
   const [sansDefense, setSansDefense] = useState(true);
   const [notAttacked, setNotAttacked] = useState(true);
@@ -141,7 +138,6 @@ export function SpyPage() {
       client.spySend({
         coords,
         cp: sourceCp ?? undefined,
-        parallel: Number(parallel) || 13,
       }),
     onSuccess: ({ jobId }, coords) => {
       setJobMsgWarn(false);

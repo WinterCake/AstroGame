@@ -102,13 +102,23 @@ async function ensurePlanetContext(client, cp) {
   });
 }
 
+export function resolveSpyParallel(slotStatus, explicitParallel) {
+  if (explicitParallel != null && Number.isInteger(explicitParallel) && explicitParallel > 0) {
+    return explicitParallel;
+  }
+  const max = Number(slotStatus?.max) || 0;
+  if (max > 0) return Math.max(1, max - 1);
+  return Number(process.env.SPY_SEND_PARALLEL) || 25;
+}
+
 export function parseSpySendOptions(args) {
   const options = {
     file: "spy-targets.txt",
     coords: [],
     dryRun: false,
     cp: null,
-    parallel: Number(process.env.SPY_SEND_PARALLEL) || 25,
+    parallel: null,
+    parallelFromCli: false,
     reserveSlots: 0,
     slotPollMs: Number(process.env.SPY_SEND_SLOT_POLL_MS) || DEFAULT_SLOT_POLL_MS,
     slotTimeoutMs: Number(process.env.SPY_SEND_SLOT_TIMEOUT_MS) || DEFAULT_SLOT_TIMEOUT_MS,
@@ -122,7 +132,10 @@ export function parseSpySendOptions(args) {
     if (arg === "--file") options.file = args[++i];
     else if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--cp") options.cp = Number(args[++i]);
-    else if (arg === "--parallel") options.parallel = Number(args[++i]);
+    else if (arg === "--parallel") {
+      options.parallel = Number(args[++i]);
+      options.parallelFromCli = true;
+    }
     else if (arg === "--reserve-slots") options.reserveSlots = Number(args[++i]);
     else if (arg === "--slot-poll") options.slotPollMs = Number(args[++i]);
     else if (arg === "--slot-timeout") options.slotTimeoutMs = Number(args[++i]);
@@ -135,7 +148,7 @@ export function parseSpySendOptions(args) {
     }
   }
 
-  if (!Number.isInteger(options.parallel) || options.parallel < 1) {
+  if (options.parallelFromCli && (!Number.isInteger(options.parallel) || options.parallel < 1)) {
     throw new Error("--parallel doit être un entier >= 1");
   }
   if (!Number.isInteger(options.reserveSlots) || options.reserveSlots < 0) {
@@ -469,8 +482,10 @@ export async function sendSpyMissions(options = {}, client) {
 
   if (!options.dryRun) {
     slotStatus = await fetchFleetSlotStatus(http, options.cp);
+    const explicitParallel = options.parallelFromCli ? options.parallel : null;
+    options.parallel = resolveSpyParallel(slotStatus, explicitParallel);
     log.info(
-      `Flottes ${slotStatus.used}/${slotStatus.max} — ${slotStatus.ownSpies} espion(s) en vol — envoi max ${options.parallel} à la fois`
+      `Flottes ${slotStatus.used}/${slotStatus.max} — ${slotStatus.ownSpies} espion(s) en vol — envoi max ${options.parallel} à la fois (slots max − 1)`
     );
   }
 

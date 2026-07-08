@@ -126,6 +126,12 @@ function detectMaxSpyPage(html) {
 }
 
 function isNewerSpyReport(candidate, current) {
+  const candidateId = Number(candidate.messageId) || 0;
+  const currentId = Number(current.messageId) || 0;
+  if (candidateId && currentId && candidateId !== currentId) {
+    return candidateId > currentId;
+  }
+
   const candidateTs = Number(candidate.timestamp) || 0;
   const currentTs = Number(current.timestamp) || 0;
   if (candidateTs !== currentTs) return candidateTs > currentTs;
@@ -134,7 +140,7 @@ function isNewerSpyReport(candidate, current) {
   const currentDetail = Boolean(current.spyData);
   if (candidateDetail !== currentDetail) return candidateDetail;
 
-  return Number(candidate.messageId) > Number(current.messageId);
+  return candidateId > currentId;
 }
 
 function dedupeSpyReportsByCoords(reports) {

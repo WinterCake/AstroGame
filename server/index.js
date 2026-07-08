@@ -49,6 +49,7 @@ import {
   getSpiedTodayCoords,
   isReportToday,
   mergeSpyReports,
+  purgeStaleSpyReports,
   recordSpiedSendSuccess,
   removeSpyReports,
   scrapeSpyReports,
@@ -648,9 +649,14 @@ app.post("/api/spy/reports/sync", async (req) => {
     );
 
     const mergedReports = mergeSpyReports(existing.reports ?? [], result.reports);
+    const galaxy = loadJson(paths.galaxy.global());
+    const { data: purgedData, removed: staleRemoved } = purgeStaleSpyReports(
+      { reports: mergedReports, meta: existing.meta },
+      galaxy?.entries ?? []
+    );
     const reports = hiddenCoords.length
-      ? applySpyHiddenFilter(mergedReports, hiddenCoords)
-      : mergedReports;
+      ? applySpyHiddenFilter(purgedData.reports, hiddenCoords)
+      : purgedData.reports;
 
     const payload = {
       ...result,
@@ -661,6 +667,7 @@ app.post("/api/spy/reports/sync", async (req) => {
         scrapedAt: new Date().toISOString(),
         hiddenCoords,
         totalReports: reports.length,
+        staleRemoved: staleRemoved.length,
       },
     };
 
@@ -669,6 +676,7 @@ app.post("/api/spy/reports/sync", async (req) => {
     }
 
     writeFileSync(lootOutput, JSON.stringify(payload, null, 2), "utf8");
+    writeFileSync(output, JSON.stringify(payload, null, 2), "utf8");
     onProgress({
       totalReports: payload.meta.totalReports,
       newReports: payload.meta.newReports ?? 0,
@@ -698,17 +706,18 @@ app.post("/api/spy/send", async (req, reply) => {
 
   runJob(job.id, async (onProgress) => {
     const client = await getClient();
-    const result = await sendSpyMissions(
-      {
-        coords,
-        cp: body.cp ? Number(body.cp) : null,
-        dryRun: Boolean(body.dryRun),
-        parallel: body.parallel ?? (Number(process.env.SPY_SEND_PARALLEL) || 25),
-        reserveSlots: body.reserveSlots ?? 0,
-        onProgress: (progress) => onProgress(progress),
-      },
-      client
-    );
+    const spyOptions = {
+      coords,
+      cp: body.cp ? Number(body.cp) : null,
+      dryRun: Boolean(body.dryRun),
+      reserveSlots: body.reserveSlots ?? 0,
+      onProgress: (progress) => onProgress(progress),
+    };
+    if (body.parallel != null) {
+      spyOptions.parallel = Number(body.parallel);
+      spyOptions.parallelFromCli = true;
+    }
+    const result = await sendSpyMissions(spyOptions, client);
     const stats = summarizeSpySendResults(result.results);
     const okCoords = result.results.filter((r) => r.ok && r.coords).map((r) => r.coords);
     if (okCoords.length && !body.dryRun) {

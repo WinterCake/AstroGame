@@ -101,7 +101,7 @@ export function dedupePlanetsByCoords(planets) {
 }
 
 export function isMoonPlanet(planet) {
-  return /(lune|moon)\s*\(/i.test(planet.label ?? "");
+  return /\b(lune|moon)\b/i.test(planet.label ?? "");
 }
 
 export async function listEmpirePlanets(client, options = {}) {

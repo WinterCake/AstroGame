@@ -16,8 +16,6 @@ import { isAttacksRouteState } from "../navigation";
 import { formatMissionTime } from "../utils/format";
 import { handleSpySendJobUpdate } from "../utils/spy-job";
 
-const PARALLEL_KEY = "astrogame-spy-parallel";
-
 type HistoryView = "all" | "today";
 
 function formatAttackTime(at?: number | null): string {
@@ -55,8 +53,6 @@ export function AttacksPage() {
   const [historyView, setHistoryView] = useState<HistoryView>("all");
   const [historySelected, setHistorySelected] = useState<Set<string>>(new Set());
   const [lastSendReport, setLastSendReport] = useState<AttackSendPayload | null>(null);
-  const parallel = localStorage.getItem(PARALLEL_KEY) ?? "13";
-
   useEffect(() => {
     setPreview(null);
   }, [sourceCp]);
@@ -169,7 +165,6 @@ export function AttacksPage() {
       client.spySend({
         coords,
         cp: sourceCp ?? undefined,
-        parallel: Number(parallel) || 13,
       }),
     onSuccess: ({ jobId }, coords) => {
       setJobMsgWarn(false);

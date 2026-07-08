@@ -1,10 +1,10 @@
 {
-  "scannedAt": "2026-06-30T12:49:49.322Z",
+  "scannedAt": "2026-07-07T13:49:35.186Z",
   "empire": {
-    "metal": 266680412366,
-    "crystal": 162784943466,
-    "deut": 72516579529,
-    "total": 501981935361
+    "metal": 295802819083,
+    "crystal": 150701326029,
+    "deut": 74303424197,
+    "total": 520807569309
   },
   "planets": [
     {
@@ -13,19 +13,21 @@
       "label": "Colonie [1:65:15]",
       "isMain": false,
       "isMoon": false,
-      "metal": 1135962915,
-      "crystal": 740986618,
-      "deut": 511748252,
-      "total": 2388697785,
+      "metal": 556090015,
+      "crystal": 406960685,
+      "deut": 281208576,
+      "total": 1244259276,
       "ships": {
+        "ship202": 385835,
         "ship212": 20000,
         "ship214": 1,
+        "ship217": 2,
         "ship220": 10
       },
       "metalMine": 50,
-      "crystalMine": 50,
-      "deutMine": 49,
-      "minesTotal": 149
+      "crystalMine": 51,
+      "deutMine": 50,
+      "minesTotal": 151
     },
     {
       "cp": 3375059,
@@ -33,22 +35,23 @@
       "label": "Main Planète [1:217:15]",
       "isMain": true,
       "isMoon": false,
-      "metal": 1274135230,
-      "crystal": 932099071,
-      "deut": 517038661,
-      "total": 2723272962,
+      "metal": 55594478416,
+      "crystal": 32966948950,
+      "deut": 16158121176,
+      "total": 104719548542,
       "ships": {
+        "ship202": 288412,
         "ship203": 1,
-        "ship210": 8080,
+        "ship210": 7060,
         "ship212": 50000,
         "ship214": 100,
         "ship217": 11,
         "ship220": 13
       },
-      "metalMine": 51,
+      "metalMine": 52,
       "crystalMine": 52,
       "deutMine": 49,
-      "minesTotal": 152
+      "minesTotal": 153
     },
     {
       "cp": 3491459,
@@ -56,12 +59,136 @@
       "label": "Colonie [2:146:7]",
       "isMain": false,
       "isMoon": false,
-      "metal": 1166056853,
-      "crystal": 853033878,
-      "deut": 412049725,
-      "total": 2431140456,
+      "metal": 7717395075,
+      "crystal": 4060235532,
+      "deut": 1749090642,
+      "total": 13526721249,
       "ships": {
-        "ship202": 56983,
+        "ship202": 200000,
+        "ship210": 1000,
+        "ship212": 20000,
+        "ship217": 1000
+      },
+      "metalMine": 51,
+      "crystalMine": 53,
+      "deutMine": 50,
+      "minesTotal": 154
+    },
+    {
+      "cp": 3380115,
+      "coords": "2:217:15",
+      "label": "Colonie [2:217:15]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 11168986153,
+      "crystal": 2879196400,
+      "deut": 4275221004,
+      "total": 18323403557,
+      "ships": {
+        "ship202": 120000,
+        "ship208": 3,
+        "ship210": 2000,
+        "ship212": 22000
+      },
+      "metalMine": 50,
+      "crystalMine": 50,
+      "deutMine": 50,
+      "minesTotal": 150
+    },
+    {
+      "cp": 3392978,
+      "coords": "3:74:7",
+      "label": "Colonie [3:74:7]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 15415218694,
+      "crystal": 6703793064,
+      "deut": 2204821161,
+      "total": 24323832919,
+      "ships": {
+        "ship202": 30000,
+        "ship203": 1000,
+        "ship212": 12500,
+        "ship217": 1000
+      },
+      "metalMine": 51,
+      "crystalMine": 53,
+      "deutMine": 50,
+      "minesTotal": 154
+    },
+    {
+      "cp": 3392979,
+      "coords": "3:74:8",
+      "label": "Colonie [3:74:8]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 30706376675,
+      "crystal": 14493096000,
+      "deut": 9693321248,
+      "total": 54892793923,
+      "ships": {
+        "ship202": 20000,
+        "ship212": 20000
+      },
+      "metalMine": 50,
+      "crystalMine": 51,
+      "deutMine": 49,
+      "minesTotal": 150
+    },
+    {
+      "cp": 3378400,
+      "coords": "3:206:6",
+      "label": "Colonie [3:206:6]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 13195272628,
+      "crystal": 6704809547,
+      "deut": 2047470745,
+      "total": 21947552920,
+      "ships": {
+        "ship202": 100000,
+        "ship209": 60000,
+        "ship210": 1000,
+        "ship212": 19999
+      },
+      "metalMine": 50,
+      "crystalMine": 53,
+      "deutMine": 50,
+      "minesTotal": 153
+    },
+    {
+      "cp": 3392969,
+      "coords": "4:147:6",
+      "label": "Colonie [4:147:6]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 3271150959,
+      "crystal": 2064295064,
+      "deut": 1462990494,
+      "total": 6798436517,
+      "ships": {
+        "ship202": 100001,
+        "ship212": 20000
+      },
+      "metalMine": 51,
+      "crystalMine": 51,
+      "deutMine": 52,
+      "minesTotal": 154
+    },
+    {
+      "cp": 3377841,
+      "coords": "4:239:15",
+      "label": "Colonie [4:239:15]",
+      "isMain": false,
+      "isMoon": false,
+      "metal": 43190138319,
+      "crystal": 21981733496,
+      "deut": 10411860812,
+      "total": 75583732627,
+      "ships": {
+        "ship202": 400000,
+        "ship203": 20000,
+        "ship210": 19820,
         "ship212": 20000
       },
       "metalMine": 51,
@@ -70,147 +197,25 @@
       "minesTotal": 153
     },
     {
-      "cp": 3380115,
-      "coords": "2:217:15",
-      "label": "Colonie [2:217:15]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1011598588,
-      "crystal": 740554220,
-      "deut": 459093925,
-      "total": 2211246733,
-      "ships": {
-        "ship208": 3,
-        "ship210": 2000,
-        "ship212": 22000
-      },
-      "metalMine": 49,
-      "crystalMine": 50,
-      "deutMine": 48,
-      "minesTotal": 147
-    },
-    {
-      "cp": 3392978,
-      "coords": "3:74:7",
-      "label": "Colonie [3:74:7]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1135079070,
-      "crystal": 931555067,
-      "deut": 318405323,
-      "total": 2385039460,
-      "ships": {
-        "ship203": 1000,
-        "ship212": 2500
-      },
-      "metalMine": 50,
-      "crystalMine": 52,
-      "deutMine": 47,
-      "minesTotal": 149
-    },
-    {
-      "cp": 3392979,
-      "coords": "3:74:8",
-      "label": "Colonie [3:74:8]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1011204816,
-      "crystal": 830494854,
-      "deut": 361191648,
-      "total": 2202891318,
-      "ships": {
-        "ship212": 20000
-      },
-      "metalMine": 49,
-      "crystalMine": 51,
-      "deutMine": 48,
-      "minesTotal": 148
-    },
-    {
-      "cp": 3378400,
-      "coords": "3:206:6",
-      "label": "Colonie [3:206:6]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1051776595,
-      "crystal": 770180489,
-      "deut": 288607979,
-      "total": 2110565063,
-      "ships": {
-        "ship202": 74804,
-        "ship209": 60000,
-        "ship210": 1000,
-        "ship212": 20000
-      },
-      "metalMine": 50,
-      "crystalMine": 51,
-      "deutMine": 47,
-      "minesTotal": 148
-    },
-    {
-      "cp": 3392969,
-      "coords": "4:147:6",
-      "label": "Colonie [4:147:6]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1134637146,
-      "crystal": 830333153,
-      "deut": 338343575,
-      "total": 2303313874,
-      "ships": {
-        "ship202": 55657,
-        "ship203": 19190,
-        "ship206": 4054,
-        "ship209": 1067,
-        "ship210": 19611,
-        "ship212": 2000
-      },
-      "metalMine": 50,
-      "crystalMine": 51,
-      "deutMine": 48,
-      "minesTotal": 149
-    },
-    {
-      "cp": 3377841,
-      "coords": "4:239:15",
-      "label": "Colonie [4:239:15]",
-      "isMain": false,
-      "isMoon": false,
-      "metal": 1272400044,
-      "crystal": 930829695,
-      "deut": 437675827,
-      "total": 2640905566,
-      "ships": {
-        "ship202": 200000,
-        "ship203": 20000,
-        "ship210": 19820,
-        "ship212": 20000
-      },
-      "metalMine": 51,
-      "crystalMine": 52,
-      "deutMine": 48,
-      "minesTotal": 151
-    },
-    {
       "cp": 3376469,
       "coords": "5:65:6",
       "label": "Colonie [5:65:6]",
       "isMain": false,
       "isMoon": false,
-      "metal": 1133753300,
-      "crystal": 739545288,
-      "deut": 308969810,
-      "total": 2182268398,
+      "metal": 15407782106,
+      "crystal": 4887332550,
+      "deut": 2852950632,
+      "total": 23148065288,
       "ships": {
-        "ship202": 20000,
+        "ship202": 320000,
         "ship207": 24090,
         "ship210": 970,
         "ship212": 20000
       },
-      "metalMine": 50,
-      "crystalMine": 50,
-      "deutMine": 47,
-      "minesTotal": 147
+      "metalMine": 51,
+      "crystalMine": 52,
+      "deutMine": 51,
+      "minesTotal": 154
     },
     {
       "cp": 3380121,
@@ -218,10 +223,10 @@
       "label": "Colonie [6:147:7]",
       "isMain": false,
       "isMoon": false,
-      "metal": 1271656382,
-      "crystal": 930285663,
-      "deut": 403063348,
-      "total": 2605005393,
+      "metal": 15022256264,
+      "crystal": 4928497238,
+      "deut": 1574068504,
+      "total": 21524822006,
       "ships": {
         "ship202": 110000,
         "ship209": 71575,
@@ -239,23 +244,23 @@
       "label": "Colonie [6:310:14]",
       "isMain": false,
       "isMoon": false,
-      "metal": 254082151427,
-      "crystal": 153555045470,
-      "deut": 68160391456,
-      "total": 475797588353,
+      "metal": 84557673779,
+      "crystal": 48624427503,
+      "deut": 21592299203,
+      "total": 154774400485,
       "ships": {
-        "ship202": 91289,
+        "ship202": 291289,
         "ship203": 527,
         "ship208": 5,
         "ship209": 20000,
-        "ship210": 26271,
+        "ship210": 25881,
         "ship212": 28200,
         "ship214": 86
       },
-      "metalMine": 49,
-      "crystalMine": 51,
-      "deutMine": 48,
-      "minesTotal": 148
+      "metalMine": 51,
+      "crystalMine": 53,
+      "deutMine": 50,
+      "minesTotal": 154
     }
   ]
 }

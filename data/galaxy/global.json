@@ -6,7 +6,7 @@
       "maxGalaxy": 6,
       "maxSystem": 400
     },
-    "planetEntries": 6192,
+    "planetEntries": 6190,
     "uniquePlayers": 3368,
     "systemsStored": 2380,
     "systemsInRun": 2015,
@@ -2040,7 +2040,7 @@
       "6:399",
       "6:400"
     ],
-    "prunedAt": "2026-06-25T14:21:58.241Z"
+    "prunedAt": "2026-07-06T10:05:17.185Z"
   },
   "entries": [
     {
@@ -77852,42 +77852,6 @@
       "lastActivity": null,
       "lastActivityMinutes": null,
       "isAttackableInactive": false
-    },
-    {
-      "coords": "2:380:15",
-      "galaxy": 2,
-      "system": 380,
-      "position": 15,
-      "planetId": "3366435",
-      "planetName": "Colonie",
-      "playerId": "182307",
-      "username": "remivid15",
-      "rank": 146,
-      "points": "845",
-      "alliance": {
-        "id": "3900",
-        "tag": "  1940",
-        "name": " La 7ème Compagnie",
-        "rank": "7"
-      },
-      "moon": null,
-      "debris": {
-        "metal": "0",
-        "crystal": "24.480"
-      },
-      "ownPlanet": false,
-      "isEnemy": false,
-      "playerClasses": [
-        "inactive"
-      ],
-      "inactive": true,
-      "onVacation": false,
-      "isNoob": false,
-      "isStrong": false,
-      "activityLabel": "Inactif (7j+)",
-      "lastActivity": "(43 min)",
-      "lastActivityMinutes": 43,
-      "isAttackableInactive": true
     },
     {
       "coords": "2:381:4",
@@ -194125,37 +194089,6 @@
       "isAttackableInactive": true
     },
     {
-      "coords": "6:313:2",
-      "galaxy": 6,
-      "system": 313,
-      "position": 2,
-      "planetId": "3380162",
-      "planetName": "Colonie",
-      "playerId": "185585",
-      "username": "john-peugeot",
-      "rank": 288,
-      "points": "70",
-      "alliance": null,
-      "moon": null,
-      "debris": {
-        "metal": "0",
-        "crystal": "20.400"
-      },
-      "ownPlanet": false,
-      "isEnemy": false,
-      "playerClasses": [
-        "inactive"
-      ],
-      "inactive": true,
-      "onVacation": false,
-      "isNoob": false,
-      "isStrong": false,
-      "activityLabel": "Inactif (7j+)",
-      "lastActivity": null,
-      "lastActivityMinutes": null,
-      "isAttackableInactive": true
-    },
-    {
       "coords": "6:313:3",
       "galaxy": 6,
       "system": 313,
@@ -269343,25 +269276,6 @@
           "isEnemy": false
         },
         {
-          "coords": "6:313:2",
-          "galaxy": 6,
-          "system": 313,
-          "position": 2,
-          "planetId": "3380162",
-          "planetName": "Colonie",
-          "moon": null,
-          "debris": {
-            "metal": "0",
-            "crystal": "20.400"
-          },
-          "activityLabel": "Inactif (7j+)",
-          "inactive": true,
-          "onVacation": false,
-          "lastActivity": null,
-          "ownPlanet": false,
-          "isEnemy": false
-        },
-        {
           "coords": "6:313:3",
           "galaxy": 6,
           "system": 313,
@@ -324907,25 +324821,6 @@
           "inactive": true,
           "onVacation": false,
           "lastActivity": null,
-          "ownPlanet": false,
-          "isEnemy": false
-        },
-        {
-          "coords": "2:380:15",
-          "galaxy": 2,
-          "system": 380,
-          "position": 15,
-          "planetId": "3366435",
-          "planetName": "Colonie",
-          "moon": null,
-          "debris": {
-            "metal": "0",
-            "crystal": "24.480"
-          },
-          "activityLabel": "Inactif (7j+)",
-          "inactive": true,
-          "onVacation": false,
-          "lastActivity": "(43 min)",
           "ownPlanet": false,
           "isEnemy": false
         },

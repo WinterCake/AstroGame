@@ -18,7 +18,7 @@ import { formatAmount } from "../utils/format";
 
 function isPlanetRow(p: { label?: string; isMoon?: boolean }) {
   if (p.isMoon) return false;
-  return !/(lune|moon)\s*\(/i.test(p.label ?? "");
+  return !/\b(lune|moon)\b/i.test(p.label ?? "");
 }
 
 function mineLevel(value?: number) {
@@ -92,7 +92,9 @@ export function EmpirePage() {
           message?: string;
         };
         if (job.status === "running") {
-          if (p.phase === "start" && p.source?.coords) {
+          if (p.phase === "build" && p.message) {
+            setJobStatus(p.message);
+          } else if (p.phase === "start" && p.source?.coords) {
             setJobStatus(`Transport ${p.index}/${p.total} — ${p.source.coords}`);
           } else if (p.message) {
             setJobStatus(p.message);
@@ -239,7 +241,7 @@ export function EmpirePage() {
             title={
               consolidateSources.length === 0
                 ? "Aucune autre planète source"
-                : "Chaque planète envoie toutes ses ressources en PT vers la destination"
+                : "Chaque planète envoie toutes ses ressources (TU + PT) vers la destination ; construit des TU si besoin"
             }
             onClick={() => {
               if (!consolidateTargetCp) return;
