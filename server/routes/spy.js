@@ -193,9 +193,8 @@ export function registerSpyRoutes(app, ctx, { getClient }) {
     };
 
     const { reports } = queryEnrichedSpyReports(ctx, filters);
-    const eligible = reports.filter((report) => !report.isNoob);
-    const coords = eligible.slice(0, maxTargets).map((r) => r.coords);
-    if (!coords.length) {
+    const candidateCoords = reports.filter((report) => !report.isNoob).map((r) => r.coords);
+    if (!candidateCoords.length) {
       reply.code(400);
       return { error: "Aucune cible éligible avec les filtres actuels" };
     }
@@ -205,7 +204,7 @@ export function registerSpyRoutes(app, ctx, { getClient }) {
         const client = await getClient();
         const planets = await listEmpirePlanets(client, { forSource: true });
         const attackOptions = {
-          coords: coords.map(coordsToTarget).filter(Boolean),
+          coords: candidateCoords.map(coordsToTarget).filter(Boolean),
           spyJson: ctx.paths.spy.lootTargets(),
           skipAttackedFile: ctx.paths.attacks.import(),
           sansDefenseOnly: true,
@@ -223,7 +222,7 @@ export function registerSpyRoutes(app, ctx, { getClient }) {
       }
     }
 
-    const job = createJob("spy-quick-attacks", { total: coords.length, done: 0 });
+    const job = createJob("spy-quick-attacks", { total: maxTargets, done: 0 });
     runJob(job.id, async (onProgress) => {
       const client = await getClient();
       const planets = await listEmpirePlanets(client, { forSource: true });
@@ -233,7 +232,7 @@ export function registerSpyRoutes(app, ctx, { getClient }) {
 
       const result = await sendAttackLootMissions(
         {
-          coords: coords.map(coordsToTarget).filter(Boolean),
+          coords: candidateCoords.map(coordsToTarget).filter(Boolean),
           spyJson: ctx.paths.spy.lootTargets(),
           skipAttackedFile: ctx.paths.attacks.import(),
           sansDefenseOnly: true,
@@ -258,6 +257,6 @@ export function registerSpyRoutes(app, ctx, { getClient }) {
       return result;
     }).catch(() => {});
 
-    return { jobId: job.id, queued: coords.length, maxTargets };
+    return { jobId: job.id, queued: maxTargets, maxTargets };
   });
 }

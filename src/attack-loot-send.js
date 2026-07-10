@@ -11,6 +11,7 @@ import {
   findOwnAttackFleet,
   formatDurationSec,
   formatShipsLabel,
+  getOutgoingAttackTargetCoords,
   parseActiveFleetActs,
   parseFlightDurationFromStep2,
   parsePlanetByCp,
@@ -153,6 +154,8 @@ export function classifyAttackFailure(message) {
 
   if (
     /protection.*joueurs?\s+(tres\s+)?faibles?/.test(text) ||
+    /protection\s+noob/.test(text) ||
+    /dans la protection noob/.test(text) ||
     /joueurs?\s+(tres\s+)?faibles?.*(protection|empeche|attaqu)/.test(text) ||
     /trop\s+faible/.test(text) ||
     (/ne\s+peu[tve]\s+pas\s+attaquer/.test(text) && /faible|protection/.test(text)) ||
@@ -299,11 +302,14 @@ export function buildAttackTargets(options) {
   const spyJsonPath = options.spyJson ? resolve(options.spyJson) : paths.spy.lootTargets();
   const spyMeta = loadSpyMetaMap(spyJsonPath);
   const skipCoords = loadSkipCoordsSet(options.skipAttackedFile);
+  for (const coord of options.extraSkipCoords ?? []) {
+    skipCoords.add(String(coord));
+  }
   const targets = [];
 
   for (const [coords, target] of unique) {
     if (skipCoords.has(coords)) {
-      log.warn(`Skip ${coords}`, { reason: "déjà attaqué aujourd'hui" });
+      log.warn(`Skip ${coords}`, { reason: "déjà attaqué ou en cours aujourd'hui" });
       continue;
     }
 
@@ -572,9 +578,52 @@ export async function sendLootAttack(client, target, options) {
   };
 }
 
+export function recordAttackCoordsToday(coords, meta = {}) {
+  const filePath = paths.attacks.import();
+  let existing = null;
+  if (existsSync(filePath)) {
+    try {
+      existing = JSON.parse(readFileSync(filePath, "utf8"));
+    } catch {
+      existing = null;
+    }
+  }
+
+  const list = (coords ?? []).map((coord) => String(coord).trim()).filter(Boolean);
+  if (!list.length) return existing;
+
+  const store = mergeAttackRecords(existing, list, meta);
+  saveAttacksStore(store);
+  return store;
+}
+
+async function loadOutgoingAttackSkipCoords(client) {
+  const coords = new Set();
+  if (!client) return coords;
+  try {
+    const html = String(
+      (await client.get("game/fleetTable", {
+        headers: { Referer: "https://play.astrogame.org/uni24/game/overview" },
+      })).data
+    );
+    for (const coord of getOutgoingAttackTargetCoords(parseActiveFleetActs(html))) {
+      coords.add(coord);
+    }
+  } catch {
+    /* session ou page flotte indisponible */
+  }
+  return coords;
+}
+
 export async function sendAttackLootMissions(options = {}, client) {
   const http = client ?? (await getClient());
-  const targets = buildAttackTargets(options);
+  const extraSkipCoords = new Set(options.extraSkipCoords ?? []);
+  if (!options.dryRun) {
+    for (const coord of await loadOutgoingAttackSkipCoords(http)) {
+      extraSkipCoords.add(coord);
+    }
+  }
+  const targets = buildAttackTargets({ ...options, extraSkipCoords });
   if (!targets.length) {
     throw new Error("Aucune cible éligible (sans défense + rapport espionnage).");
   }
@@ -676,6 +725,7 @@ export async function sendAttackLootMissions(options = {}, client) {
       });
 
       if (payload.ok) {
+        recordAttackCoordsToday([target.coords], { source: "attack-loot" });
         log.info(`OK ${label}`, {
           ships: `${payload.ships}/${target.ships} PT`,
           battleShips: payload.battleShips ? `${payload.battleShips} VB` : undefined,
@@ -683,6 +733,7 @@ export async function sendAttackLootMissions(options = {}, client) {
           butin: target.lootFormatted,
         });
       } else if (payload.reason === "weak_player") {
+        recordAttackCoordsToday([target.coords], { source: "weak-player" });
         log.warn(`Joueur trop faible ${label}`, { message: payload.message ?? payload.error });
       } else {
         log.warn(`Échec ${label}`, { message: payload.message ?? payload.error });
@@ -698,6 +749,9 @@ export async function sendAttackLootMissions(options = {}, client) {
         planetName: target.planetName,
         username: target.username,
       });
+      if (failure.reason === "weak_player") {
+        recordAttackCoordsToday([target.coords], { source: "weak-player" });
+      }
       log.warn(`Erreur ${label}`, { error: error.message });
     }
 
@@ -725,29 +779,15 @@ export async function sendAttackLootMissions(options = {}, client) {
   };
 
   if (!options.dryRun) {
-    saveAttacksImportFile(payload.results);
-  }
-
-  return payload;
-}
-
-function saveAttacksImportFile(results) {
-  const okCoords = results.filter((result) => result.ok).map((result) => result.coords);
-  if (!okCoords.length) return;
-
-  const filePath = paths.attacks.import();
-  let existing = null;
-  if (existsSync(filePath)) {
-    try {
-      existing = JSON.parse(readFileSync(filePath, "utf8"));
-    } catch {
-      existing = null;
+    const recorded = results.filter(
+      (result) => result.ok || result.reason === "weak_player"
+    ).length;
+    if (recorded) {
+      log.info(`Export extension → ${paths.attacks.import()}`, { count: recorded });
     }
   }
 
-  const store = mergeAttackRecords(existing, okCoords, { source: "attack-loot" });
-  saveAttacksStore(store);
-  log.info(`Export extension → ${paths.attacks.import()}`, { count: okCoords.length });
+  return payload;
 }
 
 export function saveAttacksStore(storeRaw) {

@@ -18,6 +18,10 @@ describe("classifyAttackFailure", () => {
     ).toBe("weak_player");
   });
 
+  it("détecte le message Astrogame protection noob", () => {
+    expect(classifyAttackFailure("Le joueur est dans la protection Noob! Retour")).toBe("weak_player");
+  });
+
   it("ignore les autres erreurs", () => {
     expect(classifyAttackFailure("PT insuffisants sur Main")).toBeNull();
     expect(classifyAttackFailure("")).toBeNull();

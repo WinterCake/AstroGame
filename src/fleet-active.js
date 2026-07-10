@@ -247,6 +247,19 @@ export function extractFleetTiming(fleet, fallbackDurationSec = null) {
   };
 }
 
+/** Coords cibles d'attaques (mission 1) encore en vol — évite un double envoi le même jour. */
+export function getOutgoingAttackTargetCoords(fleets) {
+  const coords = new Set();
+  for (const group of mergeFleetLegs(fleets ?? [])) {
+    const fleet = group.outboundLeg ?? group.active;
+    if (!fleet?.is_own || String(fleet.mission) !== "1") continue;
+    if (isReturnLeg(fleet)) continue;
+    const target = coordsFromPlace(fleet.end);
+    if (target) coords.add(target);
+  }
+  return coords;
+}
+
 export function findOwnAttackFleet(fleets, targetCoords, sourceCoords = null) {
   const matches = fleets.filter((fleet) => {
     if (!fleet?.is_own || String(fleet.mission) !== "1") return false;
