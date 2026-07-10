@@ -6,23 +6,14 @@ const detailPane = document.getElementById("detailPane");
 const panelStatusEl = document.getElementById("panelStatus");
 const debugLogEl = document.getElementById("debugLog");
 
+const { sendMessage, findSpyReport, renderSpyTableBody, loadAttacksStore, syncBundledAttacks, buildSpyMetaLine } =
+  AstroSpyUI;
+
 let spyData = { meta: {}, reports: [] };
 let attacksStore = normalizeAttacksStore(null);
 let selectedId = null;
 let sortState = { ...SPY_DEFAULT_SORT };
 const panelSortHead = document.querySelector(".list-pane .spy-table thead");
-
-function sendMessage(message) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response) => {
-      if (chrome.runtime.lastError) {
-        resolve({ ok: false, error: chrome.runtime.lastError.message });
-        return;
-      }
-      resolve(response ?? {});
-    });
-  });
-}
 
 function setStatus(text, isError = false, logs = null) {
   panelStatusEl.textContent = text;
@@ -38,24 +29,12 @@ function setStatus(text, isError = false, logs = null) {
   }
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
 function getUrlParams() {
   const params = new URLSearchParams(location.search);
   return {
     id: params.get("id"),
     filter: params.get("filter") || "all",
   };
-}
-
-function findReport(messageId) {
-  return spyData.reports?.find((report) => String(report.messageId) === String(messageId)) ?? null;
 }
 
 function renderDetail(report) {
@@ -72,7 +51,7 @@ function renderDetail(report) {
 
 function selectReport(messageId) {
   selectedId = messageId ? String(messageId) : null;
-  const report = selectedId ? findReport(selectedId) : null;
+  const report = selectedId ? findSpyReport(spyData.reports, selectedId) : null;
   renderDetail(report);
 
   panelTableBody.querySelectorAll("tr[data-id]").forEach((row) => {
@@ -91,88 +70,26 @@ function renderTable() {
   );
   updateSpySortHeaders(panelSortHead, sortState);
 
-  if (!reports.length) {
-    panelTableBody.innerHTML =
-      '<tr><td colspan="10" class="detail-empty">Aucun rapport pour ce filtre.</td></tr>';
-    return;
-  }
-
-  panelTableBody.innerHTML = reports
-    .map((report) => {
-      const id = String(report.messageId ?? "");
-      const selected = id === selectedId ? " selected" : "";
-      const attacked = isCoordAttackedToday(report.coords, attacksStore);
-      return `<tr data-id="${escapeHtml(id)}" class="${selected.trim()}${attacked ? " row-attacked" : ""}">
-        <td><button type="button" class="detail-btn${id === selectedId ? " active" : ""}" data-id="${escapeHtml(id)}">Détail</button></td>
-        <td>${escapeHtml(formatReportDate(report))}</td>
-        <td>${escapeHtml(report.coords)}</td>
-        <td>${attacked ? renderAttackBadge(true) : ""}</td>
-        <td>${escapeHtml(report.username)}</td>
-        <td>${escapeHtml(report.planetName)}</td>
-        <td class="num">${escapeHtml(report.lootFormatted)}</td>
-        <td class="num">${escapeHtml(report.fleetFormatted)}</td>
-        <td class="num">${escapeHtml(report.defenseFormatted)}</td>
-        <td class="${verdictClass(report.verdict)}">${escapeHtml(report.verdict)}</td>
-      </tr>`;
-    })
-    .join("");
-
-  panelTableBody.querySelectorAll(".detail-btn").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      selectReport(button.dataset.id);
-    });
-  });
-
-  panelTableBody.querySelectorAll("tr[data-id]").forEach((row) => {
-    row.addEventListener("click", () => selectReport(row.dataset.id));
-  });
+  renderSpyTableBody(
+    panelTableBody,
+    reports,
+    {
+      attacksStore,
+      selectedId,
+      variant: "panel",
+      emptyColspan: 10,
+      emptyText: "Aucun rapport pour ce filtre.",
+    },
+    selectReport
+  );
 }
 
 function renderMeta() {
-  const meta = spyData.meta ?? {};
-  const total = meta.totalReports ?? spyData.reports?.length ?? 0;
-  const withDetail =
-    meta.withDetail ?? spyData.reports?.filter((report) => report.spyData).length ?? 0;
-  const attackedToday = countAttacksToday(attacksStore);
-  const attackedTotal = countAllAttacks(attacksStore);
-  panelMetaEl.textContent = `${total} rapport(s) · ${withDetail} avec détail · ${meta.grosButin ?? 0} gros butin · ${attackedToday} attaqué(s) aujourd'hui · ${attackedTotal} attaque(s) enregistrée(s)`;
+  panelMetaEl.textContent = buildSpyMetaLine(spyData.meta ?? {}, spyData.reports, attacksStore);
 }
 
 async function loadAttacks() {
-  const response = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
-  attacksStore = normalizeAttacksStore(response?.store);
-}
-
-async function syncBundledAttacks() {
-  try {
-    const response = await fetch(chrome.runtime.getURL("attacks-import.json"));
-    if (!response.ok) return;
-
-    const payload = await response.json();
-    const coords = (payload.attacks ?? [])
-      .map((entry) => (typeof entry === "string" ? entry : entry?.coords))
-      .filter(Boolean);
-    if (!coords.length) return;
-
-    const summary = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
-    const todayCoords = new Set(
-      getAttacksForDay(normalizeAttacksStore(summary?.store)).map((entry) => entry.coords)
-    );
-    const missing = coords.filter((coord) => !todayCoords.has(coord));
-    if (!missing.length) return;
-
-    const result = await sendMessage({
-      type: "BATCH_MARK_ATTACKED",
-      coords: missing,
-      source: payload.meta?.source ?? "attack-loot",
-    });
-    if (result?.store) {
-      attacksStore = normalizeAttacksStore(result.store);
-    }
-  } catch {
-    // fichier absent ou extension pas rechargée
-  }
+  attacksStore = await loadAttacksStore();
 }
 
 async function loadData() {
@@ -182,7 +99,7 @@ async function loadData() {
   renderMeta();
   renderTable();
 
-  if (selectedId && findReport(selectedId)) {
+  if (selectedId && findSpyReport(spyData.reports, selectedId)) {
     selectReport(selectedId);
   } else if (selectedId) {
     renderDetail(null);
@@ -192,7 +109,7 @@ async function loadData() {
 
 panelFilterEl.addEventListener("change", () => {
   renderTable();
-  if (selectedId && !findReport(selectedId)) {
+  if (selectedId && !findSpyReport(spyData.reports, selectedId)) {
     renderDetail(null);
   } else if (selectedId) {
     selectReport(selectedId);
@@ -240,10 +157,11 @@ async function init() {
   selectedId = params.id;
   updateSpySortHeaders(panelSortHead, sortState);
 
-  await syncBundledAttacks();
+  const synced = await syncBundledAttacks();
+  if (synced) attacksStore = synced;
   await loadData();
 
-  if (selectedId && findReport(selectedId)) {
+  if (selectedId && findSpyReport(spyData.reports, selectedId)) {
     selectReport(selectedId);
   }
 }
@@ -253,7 +171,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   loadAttacks().then(() => {
     renderMeta();
     renderTable();
-    if (selectedId && findReport(selectedId)) {
+    if (selectedId && findSpyReport(spyData.reports, selectedId)) {
       selectReport(selectedId);
     }
   });

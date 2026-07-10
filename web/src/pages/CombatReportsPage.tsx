@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { ListPagination } from "../components/ListPagination";
+import { usePaginatedQuery } from "../hooks/usePaginatedQuery";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CloudDownload, Swords, Trash2 } from "lucide-react";
 import { client, watchJob, type CombatReport, type Job } from "../api/client";
@@ -12,7 +14,6 @@ type ResultFilter = "" | "victoire" | "défaite" | "match nul" | "rien";
 
 export function CombatReportsPage() {
   const qc = useQueryClient();
-  const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [resultFilter, setResultFilter] = useState<ResultFilter>("");
   const [minLoot, setMinLoot] = useState("");
@@ -21,15 +22,15 @@ export function CombatReportsPage() {
   const [jobMsg, setJobMsg] = useState<string | null>(null);
   const { sortKey, sortDir, toggle } = useSortState<CombatSortKey>("timestamp", "desc");
 
-  const params = useMemo(() => {
-    const p = new URLSearchParams({ page: String(page), pageSize: "100" });
-    if (search) p.set("search", search);
-    if (resultFilter) p.set("result", resultFilter);
-    if (minLoot) p.set("minLoot", minLoot);
-    p.set("sortBy", sortKey);
-    p.set("sortDir", sortDir);
-    return p;
-  }, [page, search, resultFilter, minLoot, sortKey, sortDir]);
+  const { page, setPage, params } = usePaginatedQuery({
+    sortKey,
+    sortDir,
+    filters: {
+      search: search || undefined,
+      result: resultFilter || undefined,
+      minLoot: minLoot || undefined,
+    },
+  });
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["combat-reports", params.toString()],
@@ -157,6 +158,7 @@ export function CombatReportsPage() {
 
       <div className="filters">
         <input
+          data-testid="combat-filter-search"
           placeholder="Recherche (coords, joueur, sujet…)"
           value={search}
           onChange={(e) => {
@@ -165,6 +167,7 @@ export function CombatReportsPage() {
           }}
         />
         <select
+          data-testid="combat-filter-result"
           value={resultFilter}
           onChange={(e) => {
             setResultFilter(e.target.value as ResultFilter);
@@ -196,7 +199,7 @@ export function CombatReportsPage() {
 
       <div className={`split split--fill split--spy${selectedMessageId ? "" : " split--solo"}`}>
         <div className="table-wrap table-wrap--fill">
-          <table className="data-table">
+          <table className="data-table" data-testid="combat-table">
             <colgroup>
               <col className="col-check" />
               <col className="col-time" />
@@ -327,15 +330,7 @@ export function CombatReportsPage() {
         )}
       </div>
 
-      <div className="pagination">
-        <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Précédent
-        </button>
-        <span>Page {page}</span>
-        <button type="button" className="btn" onClick={() => setPage((p) => p + 1)}>
-          Suivant
-        </button>
-      </div>
+      <ListPagination page={page} onPageChange={setPage} total={data?.total} />
 
       <p className="muted page-meta">
         Archive locale dans <code>data/combat/reports.json</code> — utilise <strong>Sync depuis le jeu</strong> pour

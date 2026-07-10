@@ -1,6 +1,7 @@
 import { readFileSync, existsSync, writeFileSync, copyFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as cheerio from "cheerio";
+import { pickNearestPlanet } from "../shared/coord-distance.js";
 import { getClient, postForm } from "./client.js";
 import { paths } from "./paths.js";
 import { assertLoggedIn } from "./session-check.js";
@@ -142,6 +143,41 @@ function parsePageMessage(html) {
   return { ok: false, message: text.slice(0, 300) || "Réponse inconnue" };
 }
 
+/** Détecte le refus d'attaque pour joueur trop faible (protection noob). */
+export function classifyAttackFailure(message) {
+  const text = String(message ?? "")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .toLowerCase();
+  if (!text) return null;
+
+  if (
+    /protection.*joueurs?\s+(tres\s+)?faibles?/.test(text) ||
+    /joueurs?\s+(tres\s+)?faibles?.*(protection|empeche|attaqu)/.test(text) ||
+    /trop\s+faible/.test(text) ||
+    (/ne\s+peu[tve]\s+pas\s+attaquer/.test(text) && /faible|protection/.test(text)) ||
+    /joueur\s+ne\s+peut\s+(pas\s+)?etre\s+attaque/.test(text)
+  ) {
+    return "weak_player";
+  }
+  return null;
+}
+
+export function summarizeAttackLootResults(results) {
+  const ok = results.filter((result) => result.ok).length;
+  const failed = results.length - ok;
+  const weakPlayer = results.filter((result) => result.reason === "weak_player").length;
+  const otherFailed = Math.max(0, failed - weakPlayer);
+  return { total: results.length, ok, failed, weakPlayer, otherFailed };
+}
+
+function withAttackFailureReason(payload) {
+  if (!payload || payload.ok) return payload;
+  const message = payload.message ?? payload.error ?? "";
+  const reason = classifyAttackFailure(message);
+  return reason ? { ...payload, reason } : payload;
+}
+
 function roundTransportsToPolicy(rawCount) {
   const needed = Math.max(0, Math.ceil(Number(rawCount) || 0));
   if (needed <= BASE_TRANSPORT_COUNT) return BASE_TRANSPORT_COUNT;
@@ -183,6 +219,9 @@ export function parseAttackLootOptions(args) {
     sansDefenseOnly: true,
     battleShips: 0,
     skipAttackedFile: null,
+    maxTargets: 0,
+    useNearestPlanet: false,
+    planets: [],
   };
 
   for (let i = 0; i < args.length; i++) {
@@ -195,6 +234,7 @@ export function parseAttackLootOptions(args) {
     else if (arg === "--min-loot") options.minLoot = Number(args[++i]);
     else if (arg === "--battle-ships") options.battleShips = Number(args[++i]) || 0;
     else if (arg === "--skip-attacked") options.skipAttackedFile = args[++i] ?? paths.attacks.import();
+    else if (arg === "--max-targets") options.maxTargets = Number(args[++i]) || 0;
     else if (arg === "--all-reports") options.sansDefenseOnly = false;
     else if (/^\d+:\d+:\d+$/.test(arg)) {
       const target = parseCoordLine(arg);
@@ -295,6 +335,9 @@ export function buildAttackTargets(options) {
   }
 
   targets.sort((a, b) => b.loot - a.loot);
+  if (options.maxTargets > 0) {
+    return targets.slice(0, options.maxTargets);
+  }
   return targets;
 }
 
@@ -419,7 +462,10 @@ export async function sendLootAttack(client, target, options) {
   const $1 = cheerio.load(step1Html);
   const step2Form = $1('form[action*="fleetStep2"]').first();
   if (!step2Form.length) {
-    return { ok: false, error: parsePageMessage(step1Html).message || "Formulaire fleetStep2 introuvable" };
+    return withAttackFailureReason({
+      ok: false,
+      error: parsePageMessage(step1Html).message || "Formulaire fleetStep2 introuvable",
+    });
   }
 
   const body2 = {};
@@ -443,7 +489,10 @@ export async function sendLootAttack(client, target, options) {
   const $2 = cheerio.load(step2Html);
   const step3Form = $2('form[action*="fleetStep3"]').first();
   if (!step3Form.length) {
-    return { ok: false, error: parsePageMessage(step2Html).message || "Formulaire fleetStep3 introuvable" };
+    return withAttackFailureReason({
+      ok: false,
+      error: parsePageMessage(step2Html).message || "Formulaire fleetStep3 introuvable",
+    });
   }
 
   const fleetRoom = parseFleetRoomFromStep2(step2Html);
@@ -493,7 +542,7 @@ export async function sendLootAttack(client, target, options) {
     flightDurationSec,
   };
 
-  if (!result.ok) return base;
+  if (!result.ok) return withAttackFailureReason(base);
 
   let timing = extractFleetTiming(null, flightDurationSec);
   try {
@@ -535,10 +584,13 @@ export async function sendAttackLootMissions(options = {}, client) {
 
   log.info(`${targets.length} cible(s) à attaquer`);
 
-  if (!options.dryRun) {
-    const sourcePlanet = await resolveSourcePlanet(http, options.cp);
-    options.cp = sourcePlanet.cp;
-    options.sourcePlanet = sourcePlanet;
+  const sourceCache = new Map();
+  let defaultSourcePlanet = null;
+
+  if (!options.dryRun && !options.useNearestPlanet) {
+    defaultSourcePlanet = await resolveSourcePlanet(http, options.cp);
+    options.cp = defaultSourcePlanet.cp;
+    options.sourcePlanet = defaultSourcePlanet;
   }
 
   for (let index = 0; index < targets.length; index++) {
@@ -548,6 +600,10 @@ export async function sendAttackLootMissions(options = {}, client) {
       : target.coords;
 
     if (options.dryRun) {
+      const nearest =
+        options.useNearestPlanet && options.planets?.length
+          ? pickNearestPlanet(options.planets, target.coords)
+          : null;
       results.push({
         coords: target.coords,
         ok: true,
@@ -555,18 +611,48 @@ export async function sendAttackLootMissions(options = {}, client) {
         ships: target.ships,
         loot: target.loot,
         lootFormatted: target.lootFormatted,
+        sourceCoords: nearest?.coords ?? null,
+        sourceCp: nearest?.cp ?? options.cp ?? null,
+        sourceLabel: nearest?.label ?? null,
       });
       log.info(`[dry-run] ${label} — ${target.ships} PT — butin ${target.lootFormatted}`);
       continue;
     }
 
     try {
+      let attackCp = options.cp;
+      let sourcePlanet = options.sourcePlanet;
+
+      if (options.useNearestPlanet && options.planets?.length) {
+        const nearest = pickNearestPlanet(options.planets, target.coords);
+        if (!nearest?.cp) {
+          results.push({
+            coords: target.coords,
+            ok: false,
+            error: "Aucune colonie source disponible",
+            lootFormatted: target.lootFormatted,
+            planetName: target.planetName,
+            username: target.username,
+          });
+          continue;
+        }
+        attackCp = nearest.cp;
+        if (!sourceCache.has(attackCp)) {
+          sourceCache.set(attackCp, await resolveSourcePlanet(http, attackCp));
+        }
+        sourcePlanet = sourceCache.get(attackCp);
+      } else if (!sourcePlanet) {
+        throw new Error("Planète de départ requise");
+      }
+
+      const attackOptions = { ...options, cp: attackCp, sourcePlanet };
       const ready = await waitForFleetSlot(http, options);
       slotStatus = ready.slots;
-      const payload = await sendLootAttack(http, target, options);
+      const payload = withAttackFailureReason(await sendLootAttack(http, target, attackOptions));
       results.push({
         coords: target.coords,
         ok: payload.ok,
+        reason: payload.reason ?? null,
         message: payload.message ?? payload.error,
         ships: payload.ships,
         battleShips: payload.battleShips ?? target.battleShips,
@@ -577,9 +663,9 @@ export async function sendAttackLootMissions(options = {}, client) {
         planetName: target.planetName,
         username: target.username,
         fleetSlots: slotStatus ? `${slotStatus.used}/${slotStatus.max}` : null,
-        sourceCp: options.cp,
-        sourceCoords: payload.sourceCoords ?? options.sourcePlanet?.coords ?? null,
-        sourceLabel: payload.sourceLabel ?? options.sourcePlanet?.label ?? null,
+        sourceCp: attackCp,
+        sourceCoords: payload.sourceCoords ?? sourcePlanet?.coords ?? null,
+        sourceLabel: payload.sourceLabel ?? sourcePlanet?.label ?? null,
         targetCoords: payload.targetCoords ?? target.coords,
         durationOutSec: payload.durationOutSec,
         durationReturnSec: payload.durationReturnSec,
@@ -596,13 +682,17 @@ export async function sendAttackLootMissions(options = {}, client) {
           cargo: payload.fleetRoom ? `${Math.round(payload.fleetRoom / 1_000_000)}M` : "?",
           butin: target.lootFormatted,
         });
+      } else if (payload.reason === "weak_player") {
+        log.warn(`Joueur trop faible ${label}`, { message: payload.message ?? payload.error });
       } else {
         log.warn(`Échec ${label}`, { message: payload.message ?? payload.error });
       }
     } catch (error) {
+      const failure = withAttackFailureReason({ ok: false, error: error.message });
       results.push({
         coords: target.coords,
         ok: false,
+        reason: failure.reason ?? null,
         error: error.message,
         lootFormatted: target.lootFormatted,
         planetName: target.planetName,
@@ -618,6 +708,7 @@ export async function sendAttackLootMissions(options = {}, client) {
     }
   }
 
+  const stats = summarizeAttackLootResults(results);
   const payload = {
     meta: {
       total: targets.length,
@@ -628,6 +719,7 @@ export async function sendAttackLootMissions(options = {}, client) {
       sourceCp: options.cp ?? null,
       sourceCoords: options.sourcePlanet?.coords ?? null,
       sourceLabel: options.sourcePlanet?.label ?? null,
+      ...stats,
     },
     results,
   };

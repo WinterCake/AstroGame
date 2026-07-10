@@ -26,7 +26,7 @@ function buildSpyDetailSections(report) {
 
   return SPY_DETAIL_SECTIONS.map((section) => ({
     title: section.title,
-    total: section.total(report),
+    total: report[section.totalKey] ?? "—",
     items: getNonZeroSpyItems(report.spyData[section.key], section.mode),
   }));
 }

@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { SITE_URL, UNIVERSE } from "./config.js";
 import { getClient, refreshClient } from "./client.js";
-import { derivePlayerActivity } from "./galaxy-activity.js";
+import { groupEntriesByPlayer, parseSystemEntries } from "./galaxy-parse.js";
 import { ensureDataDirs, paths } from "./paths.js";
 import { createLogger } from "./logger.js";
 
@@ -20,98 +20,7 @@ function randomDelayMs(min = DELAY_MIN_MS, max = DELAY_MAX_MS) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-export function parseSystemEntries(galaxy, system, existsPlanets) {
-  const entries = [];
-
-  for (const [position, slot] of Object.entries(existsPlanets ?? {})) {
-    if (!slot || slot === false || !slot.user?.username || !slot.planet?.id) continue;
-
-    const g = Number(galaxy);
-    const s = Number(system);
-    const p = Number(position);
-    const activity = derivePlayerActivity(slot);
-
-    entries.push({
-      coords: `${g}:${s}:${p}`,
-      galaxy: g,
-      system: s,
-      position: p,
-      planetId: slot.planet.id,
-      planetName: slot.planet.name,
-      playerId: slot.user.id,
-      username: slot.user.username,
-      rank: Number(slot.user.rank) || slot.user.rank,
-      points: slot.user.points,
-      alliance: slot.alliance
-        ? {
-            id: slot.alliance.id,
-            tag: slot.alliance.tag,
-            name: slot.alliance.name,
-            rank: slot.alliance.rank,
-          }
-        : null,
-      moon: slot.moon
-        ? {
-            id: slot.moon.id,
-            name: slot.moon.name,
-            diameter: slot.moon.diameter,
-            tempMin: slot.moon.temp_min,
-          }
-        : null,
-      debris: slot.debris
-        ? {
-            metal: slot.debris.metal,
-            crystal: slot.debris.crystal,
-          }
-        : null,
-      ownPlanet: Boolean(slot.ownPlanet),
-      isEnemy: Boolean(slot.user.isEnemy),
-      ...activity,
-    });
-  }
-
-  return entries;
-}
-
-export function groupEntriesByPlayer(entries) {
-  const players = new Map();
-
-  for (const entry of entries) {
-    if (!players.has(entry.playerId)) {
-      players.set(entry.playerId, {
-        playerId: entry.playerId,
-        username: entry.username,
-        rank: entry.rank,
-        points: entry.points,
-        alliance: entry.alliance,
-        inactive: entry.inactive,
-        onVacation: entry.onVacation,
-        activityLabel: entry.activityLabel,
-        planets: [],
-      });
-    }
-
-    const player = players.get(entry.playerId);
-    player.planets.push({
-      coords: entry.coords,
-      galaxy: entry.galaxy,
-      system: entry.system,
-      position: entry.position,
-      planetId: entry.planetId,
-      planetName: entry.planetName,
-      moon: entry.moon,
-      debris: entry.debris,
-      activityLabel: entry.activityLabel,
-      inactive: entry.inactive,
-      onVacation: entry.onVacation,
-      lastActivity: entry.lastActivity,
-      ownPlanet: entry.ownPlanet,
-      isEnemy: entry.isEnemy,
-    });
-  }
-
-  return [...players.values()].sort((a, b) => a.username.localeCompare(b.username));
-}
+export { groupEntriesByPlayer, parseSystemEntries };
 
 function previewResponse(raw) {
   return String(raw ?? "")

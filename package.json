@@ -22,12 +22,19 @@
     "scan-empire": "node scripts/scan-empire-resources.mjs",
     "migrate-data": "node scripts/migrate-data-layout.mjs",
     "dev:kill": "node scripts/kill-ui-port.mjs",
-    "predev": "node scripts/kill-ui-port.mjs",
+    "predev": "node scripts/kill-ui-port.mjs && node scripts/sync-shared.mjs",
     "dev": "concurrently --handle-input --kill-others-on-fail -n api,web -c blue,green \"node server/index.js\" \"npm run dev --prefix web\"",
     "dev:api": "node server/index.js",
     "dev:web": "npm run dev --prefix web",
     "build:web": "npm run build --prefix web",
-    "start": "node server/index.js"
+    "start": "node server/index.js",
+    "pretest": "node scripts/sync-shared.mjs",
+    "sync:shared": "node scripts/sync-shared.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@fastify/cors": "^11.0.1",
@@ -39,7 +46,13 @@
     "fastify": "^5.3.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@testing-library/react": "^16.3.0",
+    "@vitejs/plugin-react": "^4.5.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "classic-level": "^3.0.0",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "jsdom": "^26.1.0",
+    "vitest": "^3.2.4"
   }
 }

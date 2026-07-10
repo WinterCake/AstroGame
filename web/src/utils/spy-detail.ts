@@ -66,19 +66,6 @@ export function formatSpyReportDate(report: SpyReport): string {
   return report.dateText ?? "—";
 }
 
-export function verdictTone(verdict?: string): string {
-  switch (verdict) {
-    case "Gros butin":
-      return "verdict-loot";
-    case "Cible intéressante":
-      return "verdict-target";
-    case "Flotte présente":
-      return "verdict-fleet";
-    case "Défense lourde":
-      return "verdict-heavy";
-    case "Défense légère":
-      return "verdict-light";
-    default:
-      return "verdict-muted";
-  }
-}
+import { verdictTone } from "@shared/verdict.js";
+
+export { verdictTone };

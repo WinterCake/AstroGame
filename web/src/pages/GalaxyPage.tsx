@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { ListPagination } from "../components/ListPagination";
+import { usePaginatedQuery } from "../hooks/usePaginatedQuery";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Globe2, Radar, RefreshCw } from "lucide-react";
 import { client, watchJob, type Job } from "../api/client";
@@ -21,7 +23,6 @@ type GalaxySortKey = "coords" | "username" | "rank" | "points" | "planetName" | 
 export function GalaxyPage() {
   const qc = useQueryClient();
   const { sourceCp } = usePlanetSource();
-  const [page, setPage] = useState(1);
   const [inactive, setInactive] = useState("true");
   const [notSpiedToday, setNotSpiedToday] = useState(false);
   const [neverSpied, setNeverSpied] = useState(false);
@@ -37,17 +38,17 @@ export function GalaxyPage() {
 
   const trimmedSearch = search.trim();
 
-  const params = useMemo(() => {
-    const p = new URLSearchParams({ page: String(page), pageSize: "100" });
-    if (inactive) p.set("inactive", inactive);
-    if (notSpiedToday || neverSpied) p.set("notSpiedToday", "true");
-    if (neverSpied) p.set("neverSpied", "true");
-    if (trimmedSearch) p.set("search", trimmedSearch);
-    if (galaxy) p.set("galaxy", galaxy);
-    p.set("sortBy", sortKey);
-    p.set("sortDir", sortDir);
-    return p;
-  }, [page, inactive, notSpiedToday, neverSpied, trimmedSearch, galaxy, sortKey, sortDir]);
+  const { page, setPage, params } = usePaginatedQuery({
+    sortKey,
+    sortDir,
+    filters: {
+      inactive: inactive || undefined,
+      notSpiedToday: notSpiedToday || neverSpied || undefined,
+      neverSpied: neverSpied || undefined,
+      search: trimmedSearch || undefined,
+      galaxy: galaxy || undefined,
+    },
+  });
 
   const meta = useQuery({ queryKey: ["galaxy-meta"], queryFn: client.galaxyMeta });
   const { data, isLoading, refetch } = useQuery({
@@ -306,20 +307,7 @@ export function GalaxyPage() {
         </table>
       </div>
 
-      <div className="pagination">
-        <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Précédent
-        </button>
-        <span>Page {page}</span>
-        <button
-          type="button"
-          className="btn"
-          disabled={!data || page >= (data.totalPages ?? 1)}
-          onClick={() => setPage((p) => p + 1)}
-        >
-          Suivant
-        </button>
-      </div>
+      <ListPagination page={page} onPageChange={setPage} total={data?.total} />
     </div>
   );
 }

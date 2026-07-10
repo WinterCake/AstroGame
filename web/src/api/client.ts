@@ -81,6 +81,12 @@ export const client = {
     maxTargets?: number;
   }) => api<{ jobId: string }>("/api/spy/send", { method: "POST", body: JSON.stringify(body) }),
 
+  spyQuickAttacks: (body: SpyQuickAttacksBody) =>
+    api<SpyQuickAttacksPreview | { jobId: string; queued: number; maxTargets: number }>(
+      "/api/spy/quick-attacks",
+      { method: "POST", body: JSON.stringify(body) }
+    ),
+
   combatReports: (params: URLSearchParams) =>
     api<{ reports: CombatReportSummary[]; total: number; meta?: unknown }>(
       `/api/combat/reports?${params}`
@@ -253,6 +259,29 @@ export type AttackBody = {
   skipAttacked?: boolean;
   sansDefenseOnly?: boolean;
   minLoot?: number;
+};
+
+export type SpyQuickAttacksBody = {
+  dryRun?: boolean;
+  maxTargets?: number;
+  sansDefense?: boolean;
+  notAttacked?: boolean;
+  inactive?: string;
+  minLoot?: string | number;
+};
+
+export type SpyQuickAttacksPreview = {
+  count: number;
+  maxTargets: number;
+  targets: Array<{
+    coords: string;
+    lootFormatted?: string;
+    ships?: number;
+    username?: string | null;
+    planetName?: string | null;
+    sourceCoords?: string | null;
+    sourceLabel?: string | null;
+  }>;
 };
 
 export type AttackSendResult = {

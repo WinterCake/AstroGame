@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "meta": {
+    "importedAt": "2024-03-10T12:00:00.000Z"
+  },
+  "attacks": [
+    { "coords": "1:23:4", "at": 1710000000000, "source": "import" },
+    { "coords": "5:67:8", "at": 1710000001000, "source": "attack-loot" }
+  ]
+}

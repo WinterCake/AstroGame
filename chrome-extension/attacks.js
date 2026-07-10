@@ -1,17 +1,14 @@
 const ATTACKS_STORAGE_KEY = "attacksHistory";
 const LEGACY_ATTACKS_KEY = "attacksToday";
 
-function getTodayKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function getDayKey(timestamp) {
-  if (!timestamp) return null;
-  return getTodayKey(new Date(timestamp));
-}
+const A = AstrogameAttacksCore;
+const getTodayKey = A.getTodayKey;
+const getDayKey = A.getDayKey;
+const emptyAttacksStore = A.emptyAttacksStore;
+const normalizeAttacksStore = A.normalizeAttacksStore;
+const getAttacksForDay = A.getAttacksForDay;
+const getAttackedTodayCoords = A.getAttackedTodayCoords;
+const mergeAttackRecords = A.mergeAttackRecords;
 
 function parseAttackCoordsFromUrl(href) {
   try {
@@ -30,44 +27,6 @@ function parseAttackCoordsFromUrl(href) {
   }
 }
 
-function emptyAttacksStore() {
-  return { version: 1, attacks: [] };
-}
-
-function migrateLegacyAttacksStore(raw) {
-  if (!raw?.coords || typeof raw.coords !== "object") return null;
-
-  const attacks = Object.entries(raw.coords).map(([coords, at]) => ({
-    coords,
-    at: Number(at) || Date.now(),
-    source: "legacy",
-  }));
-
-  return { version: 1, attacks };
-}
-
-function normalizeAttacksStore(raw) {
-  if (!raw) return emptyAttacksStore();
-
-  if (Array.isArray(raw.attacks)) {
-    return {
-      version: 1,
-      attacks: raw.attacks
-        .filter((entry) => entry?.coords)
-        .map((entry) => ({
-          coords: String(entry.coords),
-          at: Number(entry.at) || Date.now(),
-          source: entry.source ?? "click",
-        })),
-    };
-  }
-
-  const migrated = migrateLegacyAttacksStore(raw);
-  if (migrated) return migrated;
-
-  return emptyAttacksStore();
-}
-
 function recordAttack(store, coords, meta = {}) {
   const normalized = normalizeAttacksStore(store);
   if (!coords) return normalized;
@@ -82,24 +41,7 @@ function recordAttack(store, coords, meta = {}) {
 }
 
 function recordAttacksBatch(store, coordsList, meta = {}) {
-  const normalized = normalizeAttacksStore(store);
-  const today = getTodayKey();
-  const todayCoords = new Set(
-    normalized.attacks.filter((entry) => getDayKey(entry.at) === today).map((entry) => entry.coords)
-  );
-
-  for (const coords of coordsList ?? []) {
-    const value = String(coords ?? "").trim();
-    if (!value || todayCoords.has(value)) continue;
-    normalized.attacks.push({
-      coords: value,
-      at: Date.now(),
-      source: meta.source ?? "import",
-    });
-    todayCoords.add(value);
-  }
-
-  return normalized;
+  return mergeAttackRecords(store, coordsList, { source: meta.source ?? "import" });
 }
 
 function mergeStorageAttacks(historyRaw, legacyRaw) {
@@ -110,7 +52,7 @@ function mergeStorageAttacks(historyRaw, legacyRaw) {
   if (legacy?.coords && typeof legacy.coords === "object" && legacy.date === today) {
     const now = Date.now();
     const knownToday = new Set(getAttacksForDay(store, today).map((entry) => entry.coords));
-    for (const [coords, at] of Object.entries(legacy.coords)) {
+    for (const [coords] of Object.entries(legacy.coords)) {
       if (knownToday.has(coords)) continue;
       store.attacks.push({
         coords: String(coords),
@@ -128,20 +70,13 @@ function mergeStorageAttacks(historyRaw, legacyRaw) {
   return store;
 }
 
-function getAttacksForDay(store, dayKey = getTodayKey()) {
-  const normalized = normalizeAttacksStore(store);
-  return normalized.attacks.filter((entry) => getDayKey(entry.at) === dayKey);
-}
-
 function isCoordAttackedToday(coords, store) {
   if (!coords) return false;
   return getAttacksForDay(store).some((entry) => entry.coords === coords);
 }
 
 function countAttacksToday(store) {
-  const today = getTodayKey();
-  const coords = new Set(getAttacksForDay(store, today).map((entry) => entry.coords));
-  return coords.size;
+  return getAttackedTodayCoords(store).size;
 }
 
 function countAllAttacks(store) {

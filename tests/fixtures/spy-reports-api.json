@@ -1,0 +1,34 @@
+{
+  "meta": { "totalReports": 3, "source": "test-fixture" },
+  "reports": [
+    {
+      "messageId": "1",
+      "coords": "1:1:1",
+      "fleet": 0,
+      "defense": 0,
+      "loot": 600000000,
+      "verdict": "Gros butin",
+      "spyData": { "400": { "502": 1000 } },
+      "timestamp": 1704067200
+    },
+    {
+      "messageId": "2",
+      "coords": "1:1:2",
+      "fleet": 0,
+      "defense": 5000,
+      "loot": 100000,
+      "verdict": "Défense légère",
+      "spyData": { "400": { "401": 5000 } },
+      "timestamp": 1704067201
+    },
+    {
+      "messageId": "3",
+      "coords": "1:1:3",
+      "fleet": 100,
+      "defense": 0,
+      "loot": 50000,
+      "verdict": "Flotte présente",
+      "timestamp": 1704067202
+    }
+  ]
+}

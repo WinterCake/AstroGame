@@ -1,4 +1,4 @@
-importScripts("galaxy-activity.js", "parse.js", "spy-parse.js", "attacks.js");
+importScripts("lib/galaxy-activity.js", "lib/galaxy-parse.js", "galaxy-activity.js", "parse.js", "lib/spy-core.js", "lib/verdict.js", "spy-parse.js", "lib/attacks-core.js", "attacks.js");
 
 const STORAGE_KEY = "galaxyData";
 const SPY_STORAGE_KEY = "spyReports";
@@ -118,7 +118,7 @@ async function scrapeSpyReportsViaTab(universe) {
   } catch (error) {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ["attacks.js", "spy-parse.js", "content-game.js"],
+      files: ["lib/attacks-core.js", "lib/spy-core.js", "lib/verdict.js", "attacks.js", "spy-parse.js", "content-game.js"],
     });
     result = await chrome.tabs.sendMessage(tab.id, { type: "SCRAPE_SPY_PAGES", universe });
   }

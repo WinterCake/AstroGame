@@ -1,4 +1,6 @@
-const SPY_ELEMENT_LABELS = {
+// Généré par npm run sync:shared — ne pas éditer à la main
+/** Labels éléments espionnage Astrogame (ressources, flotte, défense, bâtiments, recherche). */
+var SPY_ELEMENT_LABELS = {
   901: "Métal",
   902: "Cristal",
   903: "Deutérium",
@@ -73,8 +75,8 @@ const SPY_ELEMENT_LABELS = {
   199: "Technologie graviton",
 };
 
-const SPY_DETAIL_SECTIONS = [
-  { key: "900", title: "Ressources", mode: "amount", total: (report) => report.lootFormatted },
-  { key: "200", title: "Flotte", mode: "count", total: (report) => report.fleetFormatted },
-  { key: "400", title: "Défense", mode: "count", total: (report) => report.defenseFormatted },
+var SPY_DETAIL_SECTIONS = [
+  { key: "900", title: "Ressources", mode: "amount", totalKey: "lootFormatted" },
+  { key: "200", title: "Flotte", mode: "count", totalKey: "fleetFormatted" },
+  { key: "400", title: "Défense", mode: "count", totalKey: "defenseFormatted" },
 ];

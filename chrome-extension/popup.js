@@ -35,21 +35,16 @@ let selectedReportId = null;
 let sortState = { ...SPY_DEFAULT_SORT };
 const popupSortHead = document.querySelector("#panel-spy .spy-table thead");
 
-function sendMessage(message) {
-  return new Promise((resolve) => {
-    try {
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          resolve({ ok: false, error: chrome.runtime.lastError.message });
-          return;
-        }
-        resolve(response);
-      });
-    } catch (error) {
-      resolve({ ok: false, error: error.message });
-    }
-  });
-}
+const {
+  sendMessage,
+  escapeHtml,
+  formatDateTime,
+  downloadJson,
+  findSpyReport,
+  renderSpyTableBody,
+  loadAttacksStore,
+  syncBundledAttacks,
+} = AstroSpyUI;
 
 function setSpyStatus(text, isError = false, logs = null) {
   spyStatusEl.textContent = text;
@@ -68,13 +63,13 @@ function renderGalaxy(data) {
     : "Dernier scan : —";
 }
 
-function findSpyReport(messageId) {
-  return spyData.reports?.find((report) => String(report.messageId) === String(messageId)) ?? null;
+function findSpyReportById(messageId) {
+  return findSpyReport(spyData.reports, messageId);
 }
 
 function showInlineDetail(messageId) {
   selectedReportId = messageId ? String(messageId) : null;
-  const report = selectedReportId ? findSpyReport(selectedReportId) : null;
+  const report = selectedReportId ? findSpyReportById(selectedReportId) : null;
 
   if (!report) {
     spyDetailBox.hidden = false;
@@ -108,39 +103,18 @@ function renderSpyTable(reports) {
   );
   updateSpySortHeaders(popupSortHead, sortState);
 
-  if (!filtered.length) {
-    spyTableBody.innerHTML =
-      '<tr class="empty"><td colspan="9">Aucun rapport pour ce filtre.</td></tr>';
-    return;
-  }
-
-  spyTableBody.innerHTML = filtered
-    .map((report) => {
-      const mines = `M${report.metalMine}/C${report.crystalMine}/D${report.deutMine}`;
-      const title = `${report.planetName} — ${mines} — Destr. ${report.targetChance ?? "?"}% — Espion. ${report.spyChance ?? "?"}%`;
-      const messageId = report.messageId ? String(report.messageId) : "";
-      const attacked = isCoordAttackedToday(report.coords, attacksStore);
-      const selected = messageId && messageId === selectedReportId ? " selected" : "";
-      return `<tr title="${escapeHtml(title)}" class="${attacked ? "row-attacked" : ""}${selected}">
-        <td>${messageId ? `<button type="button" class="detail-btn${selected ? " active" : ""}" data-id="${escapeHtml(messageId)}">▶</button>` : ""}</td>
-        <td>${escapeHtml(formatReportDate(report))}</td>
-        <td>${escapeHtml(report.coords)}</td>
-        <td>${attacked ? renderAttackBadge(true) : ""}</td>
-        <td>${escapeHtml(truncateText(report.username, 14))}</td>
-        <td class="num">${escapeHtml(report.lootFormatted)}</td>
-        <td class="num">${escapeHtml(report.fleetFormatted)}</td>
-        <td class="num">${escapeHtml(report.defenseFormatted)}</td>
-        <td class="${verdictClass(report.verdict)}">${escapeHtml(report.verdict)}</td>
-      </tr>`;
-    })
-    .join("");
-
-  spyTableBody.querySelectorAll(".detail-btn").forEach((button) => {
-    button.addEventListener("click", (event) => {
-      event.stopPropagation();
-      showInlineDetail(button.dataset.id);
-    });
-  });
+  renderSpyTableBody(
+    spyTableBody,
+    filtered,
+    {
+      attacksStore,
+      selectedId: selectedReportId,
+      variant: "popup",
+      emptyColspan: 9,
+      emptyText: "Aucun rapport pour ce filtre.",
+    },
+    showInlineDetail
+  );
 }
 
 function renderSpy(data) {
@@ -160,42 +134,13 @@ function renderSpy(data) {
   renderSpyTable(reports);
 }
 
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+async function loadAttacks() {
+  attacksStore = await loadAttacksStore();
 }
 
-function truncateText(text, maxLength) {
-  const value = String(text ?? "");
-  if (value.length <= maxLength) return value;
-  return `${value.slice(0, maxLength - 1)}…`;
-}
-
-function formatDateTime(iso) {
-  try {
-    return new Date(iso).toLocaleString("fr-FR", {
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso;
-  }
-}
-
-function downloadJson(data, prefix) {
-  const filename = `${prefix}-${new Date().toISOString().slice(0, 10)}.json`;
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  link.click();
-  URL.revokeObjectURL(url);
+async function refreshSpyBundledAttacks() {
+  const synced = await syncBundledAttacks();
+  if (synced) attacksStore = synced;
 }
 
 function switchTab(tabName) {
@@ -220,44 +165,8 @@ async function refreshGalaxy() {
   }
 }
 
-async function loadAttacks() {
-  const response = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
-  attacksStore = normalizeAttacksStore(response?.store);
-}
-
-async function syncBundledAttacks() {
-  try {
-    const response = await fetch(chrome.runtime.getURL("attacks-import.json"));
-    if (!response.ok) return;
-
-    const payload = await response.json();
-    const coords = (payload.attacks ?? [])
-      .map((entry) => (typeof entry === "string" ? entry : entry?.coords))
-      .filter(Boolean);
-    if (!coords.length) return;
-
-    const summary = await sendMessage({ type: "GET_ATTACKS_SUMMARY" });
-    const todayCoords = new Set(
-      getAttacksForDay(normalizeAttacksStore(summary?.store)).map((entry) => entry.coords)
-    );
-    const missing = coords.filter((coord) => !todayCoords.has(coord));
-    if (!missing.length) return;
-
-    const result = await sendMessage({
-      type: "BATCH_MARK_ATTACKED",
-      coords: missing,
-      source: payload.meta?.source ?? "attack-loot",
-    });
-    if (result?.store) {
-      attacksStore = normalizeAttacksStore(result.store);
-    }
-  } catch {
-    // ignore
-  }
-}
-
 async function refreshSpy() {
-  await syncBundledAttacks();
+  await refreshSpyBundledAttacks();
   await loadAttacks();
   const data = await sendMessage({ type: "GET_SPY_DATA" });
   renderSpy(data ?? { meta: {}, reports: [] });

@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ListPagination } from "../components/ListPagination";
+import { usePaginatedQuery } from "../hooks/usePaginatedQuery";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CloudDownload, Crosshair, Radar, Trash2 } from "lucide-react";
+import { CloudDownload, Crosshair, Radar, Rocket, Trash2 } from "lucide-react";
 import { client, watchJob, type Job, type SpyReport } from "../api/client";
 import { IconText, PageTitle } from "../components/IconText";
 import { SpyReportPanel } from "../components/SpyReportPanel";
@@ -11,6 +13,7 @@ import { usePlanetSource } from "../context/PlanetSourceContext";
 import type { AttacksRouteState } from "../navigation";
 import { formatSpyReportDate, verdictTone } from "../utils/spy-detail";
 import { handleSpySendJobUpdate } from "../utils/spy-job";
+import { formatAttackLootCompletionMessage } from "../utils/attack-job";
 import {
   applyTableRowSelect,
   selectAllTableRows,
@@ -26,7 +29,6 @@ export function SpyPage() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { sourceCp, planets } = usePlanetSource();
-  const [page, setPage] = useState(1);
   const [sansDefense, setSansDefense] = useState(true);
   const [notAttacked, setNotAttacked] = useState(true);
   const [inactive, setInactive] = useState<InactiveFilter>("true");
@@ -40,18 +42,18 @@ export function SpyPage() {
   const tableRef = useRef<HTMLDivElement>(null);
   const { sortKey, sortDir, toggle } = useSortState<SpySortKey>("loot", "desc");
 
-  const params = useMemo(() => {
-    const p = new URLSearchParams({ page: String(page), pageSize: "100" });
-    if (sansDefense) p.set("sansDefense", "true");
-    if (notAttacked) p.set("notAttacked", "true");
-    if (inactive) p.set("inactive", inactive);
-    if (spiedDateFilter === "today") p.set("spiedToday", "true");
-    if (spiedDateFilter === "not-today") p.set("spiedToday", "false");
-    if (minLoot) p.set("minLoot", minLoot);
-    p.set("sortBy", sortKey);
-    p.set("sortDir", sortDir);
-    return p;
-  }, [page, sansDefense, notAttacked, inactive, spiedDateFilter, minLoot, sortKey, sortDir]);
+  const { page, setPage, params } = usePaginatedQuery({
+    sortKey,
+    sortDir,
+    filters: {
+      sansDefense,
+      notAttacked,
+      inactive: inactive || undefined,
+      spiedToday:
+        spiedDateFilter === "today" ? "true" : spiedDateFilter === "not-today" ? "false" : undefined,
+      minLoot: minLoot || undefined,
+    },
+  });
 
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["spy-reports", params.toString()],
@@ -182,6 +184,76 @@ export function SpyPage() {
     selectReport(coords);
   }
 
+  function quickAttackFilters() {
+    return {
+      sansDefense: true,
+      notAttacked,
+      inactive: inactive || undefined,
+      minLoot: minLoot || undefined,
+    };
+  }
+
+  const quickAttack = useMutation({
+    mutationFn: async () => {
+      const filters = quickAttackFilters();
+      const preview = await client.spyQuickAttacks({ ...filters, dryRun: true, maxTargets: 30 });
+      if (!preview.count) throw new Error("Aucune cible éligible avec les filtres actuels");
+
+      const top = preview.targets.slice(0, 3);
+      const sample = top
+        .map((t) => `${t.coords} (${t.lootFormatted ?? "?"}) depuis ${t.sourceCoords ?? "?"}`)
+        .join("\n");
+      const more = preview.count > 3 ? `\n… et ${preview.count - 3} autre(s)` : "";
+      const ok = window.confirm(
+        `Lancer ${preview.count} attaque(s) max (sans défense, tri butin) ?\n\n` +
+          `Tous les rapports espionnage éligibles — pas seulement ceux du jour\n` +
+          `Petits transporteurs auto · planète la plus proche par cible\n\n` +
+          `${sample}${more}`
+      );
+      if (!ok) throw new Error("Annulé");
+
+      return client.spyQuickAttacks({ ...filters, maxTargets: 30 });
+    },
+    onSuccess: (data) => {
+      if (!("jobId" in data)) return;
+      setJobMsgWarn(false);
+      setJobMsg(`Attaques rapides lancées (${data.queued} cible(s))…`);
+      watchJob(data.jobId, (job: Job) => {
+        const p = job.progress as {
+          ok?: number;
+          done?: number;
+          total?: number;
+          failed?: number;
+          weakPlayer?: number;
+          message?: string;
+        };
+        if (job.status === "running") {
+          const failHint =
+            p.failed != null && p.failed > 0
+              ? ` — ${p.failed} échec(s)${p.weakPlayer ? ` dont ${p.weakPlayer} trop faible` : ""}`
+              : "";
+          setJobMsg(`Attaques ${p.done ?? 0}/${p.total ?? data.queued} — ${p.ok ?? 0} OK${failHint}`);
+        }
+        if (job.status === "completed") {
+          const result = job.result as
+            | { results?: Array<{ ok?: boolean; reason?: string | null }>; meta?: { weakPlayer?: number } }
+            | undefined;
+          setJobMsg(formatAttackLootCompletionMessage(p, result, data.queued));
+          setJobMsgWarn(Boolean(p.failed && p.failed > 0));
+          refetch();
+          qc.invalidateQueries({ queryKey: ["attacks-import"] });
+          qc.invalidateQueries({ queryKey: ["fleets-active"] });
+        }
+        if (job.status === "failed") setJobMsg(`Erreur : ${job.error}`);
+      });
+    },
+    onError: (e: Error) => {
+      if (e.message === "Annulé") return;
+      setJobMsgWarn(false);
+      setJobMsg(`Erreur : ${e.message}`);
+    },
+  });
+
   function sendToAttacks(coords: string[]) {
     if (!coords.length) return;
     const state: AttacksRouteState = {
@@ -237,6 +309,17 @@ export function SpyPage() {
               </button>
             </>
           )}
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={quickAttack.isPending}
+            title="Top 30 sans défense (filtres actifs), tri butin, PT depuis la colonie la plus proche"
+            onClick={() => quickAttack.mutate()}
+          >
+            <IconText icon={Rocket} size={15}>
+              {quickAttack.isPending ? "Attaques…" : "Attaque rapide (30 max)"}
+            </IconText>
+          </button>
           <button type="button" className="btn btn-primary" onClick={() => sync.mutate()} disabled={sync.isPending}>
             <IconText icon={CloudDownload} size={15}>
               Sync depuis le jeu
@@ -262,6 +345,7 @@ export function SpyPage() {
         <label>
           <input
             type="checkbox"
+            data-testid="spy-filter-sans-defense"
             checked={sansDefense}
             onChange={(e) => setSansDefense(e.target.checked)}
           />
@@ -308,7 +392,7 @@ export function SpyPage() {
 
       <div className={`split split--fill split--spy${selectedCoords ? "" : " split--solo"}`}>
         <div className="table-wrap table-wrap--fill" ref={tableRef} tabIndex={0}>
-          <table className="data-table">
+          <table className="data-table" data-testid="spy-table">
             <colgroup>
               <col className="col-check" />
               <col className="col-coords" />
@@ -406,15 +490,7 @@ export function SpyPage() {
         )}
       </div>
 
-      <div className="pagination">
-        <button type="button" className="btn" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>
-          Précédent
-        </button>
-        <span>Page {page}</span>
-        <button type="button" className="btn" onClick={() => setPage((p) => p + 1)}>
-          Suivant
-        </button>
-      </div>
+      <ListPagination page={page} onPageChange={setPage} total={data?.total} />
 
       <p className="muted page-meta">
         <strong>Sélection :</strong> clic = une ligne · Ctrl+clic = ajouter/retirer · Shift+clic = plage · Ctrl+A = toute la page · coords = détail.

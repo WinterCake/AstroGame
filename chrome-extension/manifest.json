@@ -16,7 +16,7 @@
     },
     {
       "matches": ["https://play.astrogame.org/*/game/*"],
-      "js": ["attacks.js", "spy-parse.js", "content-game.js"],
+      "js": ["lib/attacks-core.js", "lib/spy-core.js", "lib/verdict.js", "attacks.js", "spy-parse.js", "content-game.js"],
       "run_at": "document_start"
     }
   ],

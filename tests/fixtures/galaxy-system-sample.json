@@ -1,0 +1,27 @@
+{
+  "1": {
+    "user": {
+      "id": 100,
+      "username": "Alpha",
+      "rank": 1,
+      "points": "50.000",
+      "class": []
+    },
+    "planet": { "id": 1001, "name": "Alpha Prime" },
+    "lastActivity": "30m",
+    "lastActivityNum": 30
+  },
+  "4": {
+    "user": {
+      "id": 200,
+      "username": "Beta",
+      "rank": 5,
+      "points": "10.000",
+      "class": ["inactive"]
+    },
+    "planet": { "id": 2001, "name": "Beta Base" },
+    "alliance": { "id": 1, "tag": "TAG", "name": "Alliance", "rank": 2 },
+    "lastActivity": "",
+    "lastActivityNum": null
+  }
+}

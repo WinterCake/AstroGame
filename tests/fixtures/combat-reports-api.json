@@ -1,0 +1,27 @@
+{
+  "meta": { "totalReports": 2, "source": "test-fixture" },
+  "reports": [
+    {
+      "messageId": "c1",
+      "coords": "1:2:3",
+      "result": "victoire",
+      "outcome": "victoire",
+      "loot": 1200000,
+      "lootFormatted": "1,2 M",
+      "timestamp": 1704067200,
+      "subject": "Combat test victoire",
+      "htmlBody": "<p>Rapport combat victoire</p>"
+    },
+    {
+      "messageId": "c2",
+      "coords": "1:2:4",
+      "result": "défaite",
+      "outcome": "défaite",
+      "loot": 0,
+      "lootFormatted": "0",
+      "timestamp": 1704067300,
+      "subject": "Combat test défaite",
+      "htmlBody": "<p>Rapport combat défaite</p>"
+    }
+  ]
+}
