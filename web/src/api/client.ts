@@ -60,6 +60,11 @@ export const client = {
     api<{ entries: GalaxyEntry[]; total: number; page: number; totalPages: number; spiedToday?: number; allSpied?: number }>(
       `/api/galaxy/entries?${params}`
     ),
+  galaxyScrape: (body: { all?: boolean; refresh?: boolean; galaxy?: number } = {}) =>
+    api<{ jobId: string }>("/api/galaxy/scrape", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 
   spySlots: (cp?: number) =>
     api<unknown>(`/api/spy/slots${cp ? `?cp=${cp}` : ""}`),

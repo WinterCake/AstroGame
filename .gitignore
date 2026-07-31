@@ -12,3 +12,6 @@ Bâtiments - Chaos - Astrogame*
 chrome-extension/attacks-import.json
 web/dist/
 e2e/.data/
+test-results/
+.cursor/
+playwright-report/

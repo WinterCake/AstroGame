@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import {
+  buildAllSpiedCoordsSet,
   loadSpyReportsData,
   saveSpyReportsBundle,
   saveSpyReportsData,
@@ -54,5 +55,19 @@ describe("spy-store", () => {
   it("saveSpyReportsData délègue au bundle avec miroir", () => {
     saveSpyReportsData(sample);
     expect(existsSync(join(dataDir, "spy", "reports.json"))).toBe(true);
+  });
+
+  it("buildAllSpiedCoordsSet fusionne rapports, masqués et spied-log", () => {
+    const coords = buildAllSpiedCoordsSet({
+      reports: [{ coords: "1:1:1" }],
+      hiddenCoords: ["2:2:2"],
+      spiedLogStore: {
+        attacks: [
+          { coords: "3:3:3", at: Date.now() },
+          { coords: "1:1:1", at: Date.now() },
+        ],
+      },
+    });
+    expect(coords).toEqual(new Set(["1:1:1", "2:2:2", "3:3:3"]));
   });
 });

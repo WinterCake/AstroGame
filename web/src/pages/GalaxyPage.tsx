@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ListPagination } from "../components/ListPagination";
 import { usePaginatedQuery } from "../hooks/usePaginatedQuery";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Globe2, Radar, RefreshCw } from "lucide-react";
+import { CloudDownload, Globe2, Radar, RefreshCw } from "lucide-react";
 import { client, watchJob, type Job } from "../api/client";
 import { IconText, PageTitle } from "../components/IconText";
 import { SortableTh, useSortState } from "../components/SortableTh";
@@ -19,6 +19,28 @@ import {
 const MAX_TARGETS_KEY = "astrogame-spy-max-targets";
 
 type GalaxySortKey = "coords" | "username" | "rank" | "points" | "planetName" | "alliance";
+
+function SpyStatusCell({ spiedToday, everSpied }: { spiedToday?: boolean; everSpied?: boolean }) {
+  if (spiedToday) {
+    return (
+      <span className="spy-badge" title="Espionné aujourd'hui">
+        oui
+      </span>
+    );
+  }
+  if (everSpied) {
+    return (
+      <span className="muted" title="Déjà espionné (rapport ou sonde), mais pas aujourd'hui">
+        ancien
+      </span>
+    );
+  }
+  return (
+    <span className="tag" title="Jamais espionné">
+      jamais
+    </span>
+  );
+}
 
 export function GalaxyPage() {
   const qc = useQueryClient();
@@ -55,6 +77,53 @@ export function GalaxyPage() {
     queryKey: ["galaxy-entries", params.toString()],
     queryFn: () => client.galaxyEntries(params),
     enabled: meta.data?.exists === true,
+  });
+
+  const galaxyScrape = useMutation({
+    mutationFn: () => client.galaxyScrape({ all: true, refresh: true }),
+    onSuccess: ({ jobId }) => {
+      setJobMsgWarn(false);
+      setJobMsg("Scan galaxie démarré…");
+      watchJob(jobId, (job: Job) => {
+        const p = job.progress as {
+          scanned?: number;
+          total?: number;
+          planetEntries?: number;
+          message?: string;
+        };
+        if (job.status === "running") {
+          if (p.scanned != null && p.total != null) {
+            setJobMsg(
+              `Scan galaxie ${p.scanned}/${p.total}` +
+                (p.planetEntries != null ? ` — ${p.planetEntries.toLocaleString("fr-FR")} planètes` : "")
+            );
+          } else {
+            setJobMsg(p.message ?? "Scan galaxie en cours…");
+          }
+        }
+        if (job.status === "completed") {
+          const result = job.result as { meta?: { planetEntries?: number; systemsScannedThisRun?: number } } | undefined;
+          const planets = result?.meta?.planetEntries ?? p.planetEntries;
+          const scanned = result?.meta?.systemsScannedThisRun ?? p.scanned;
+          setJobMsg(
+            `Scan galaxie terminé` +
+              (scanned != null ? ` — ${scanned} systèmes` : "") +
+              (planets != null ? ` — ${planets.toLocaleString("fr-FR")} planètes` : "")
+          );
+          qc.invalidateQueries({ queryKey: ["galaxy-meta"] });
+          qc.invalidateQueries({ queryKey: ["galaxy-entries"] });
+          refetch();
+        }
+        if (job.status === "failed") {
+          setJobMsgWarn(true);
+          setJobMsg(`Erreur : ${job.error}`);
+        }
+      });
+    },
+    onError: (e: Error) => {
+      setJobMsgWarn(true);
+      setJobMsg(`Erreur : ${e.message}`);
+    },
   });
 
   const spySend = useMutation({
@@ -121,11 +190,41 @@ export function GalaxyPage() {
     localStorage.setItem(MAX_TARGETS_KEY, v);
   }
 
+  const scrapeButton = (
+    <button
+      type="button"
+      className="btn btn-primary"
+      disabled={galaxyScrape.isPending}
+      title="Re-scan complet de toutes les galaxies (écrit data/galaxy/global.json)"
+      onClick={() => {
+        if (
+          !window.confirm(
+            "Lancer un scan complet de toutes les galaxies ?\n\nCela peut prendre plusieurs minutes."
+          )
+        ) {
+          return;
+        }
+        galaxyScrape.mutate();
+      }}
+    >
+      <IconText icon={CloudDownload} size={15}>
+        {galaxyScrape.isPending ? "Scan…" : "Scanner toutes les galaxies"}
+      </IconText>
+    </button>
+  );
+
   if (!meta.data?.exists) {
     return (
       <div className="page">
-        <h1>Galaxie</h1>
-        <p className="muted">Aucun fichier galaxie — lance <code>npm run galaxy-merge</code> ou un scrape.</p>
+        <div className="page-header">
+          <PageTitle icon={Globe2}>Galaxie</PageTitle>
+          <div className="actions">{scrapeButton}</div>
+        </div>
+        {jobMsg && <p className={`status-msg${jobMsgWarn ? " status-msg--warn" : ""}`}>{jobMsg}</p>}
+        <p className="muted">
+          Aucun fichier galaxie — lance un scan depuis le jeu, ou{" "}
+          <code>npm run galaxy-merge</code>.
+        </p>
       </div>
     );
   }
@@ -144,6 +243,7 @@ export function GalaxyPage() {
               Rafraîchir
             </IconText>
           </button>
+          {scrapeButton}
           <button
             type="button"
             className="btn btn-primary"
@@ -262,7 +362,7 @@ export function GalaxyPage() {
               <SortableTh label="Points" active={sortKey === "points"} dir={sortDir} onClick={() => { toggle("points"); setPage(1); }} />
               <SortableTh label="Planète" active={sortKey === "planetName"} dir={sortDir} onClick={() => { toggle("planetName"); setPage(1); }} />
               <th>Statut</th>
-              <th>Espion.</th>
+              <th title="oui = aujourd'hui · ancien = déjà espionné · jamais = jamais sondé">Espion.</th>
               <SortableTh label="Alliance" active={sortKey === "alliance"} dir={sortDir} onClick={() => { toggle("alliance"); setPage(1); }} />
             </tr>
           </thead>
@@ -292,13 +392,7 @@ export function GalaxyPage() {
                   {!e.inactive && !e.onVacation && <span className="tag ok">actif</span>}
                 </td>
                 <td className="col-flag">
-                  {e.spiedToday ? (
-                    <span className="spy-badge">oui</span>
-                  ) : e.everSpied ? (
-                    <span className="muted" title="Déjà espionné, mais pas aujourd'hui">ancien</span>
-                  ) : (
-                    "—"
-                  )}
+                  <SpyStatusCell spiedToday={e.spiedToday} everSpied={e.everSpied} />
                 </td>
                 <td className="col-alliance" title={e.alliance?.tag}>{e.alliance?.tag ?? "—"}</td>
               </tr>

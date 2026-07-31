@@ -72,18 +72,36 @@ export function registerGalaxyRoutes(app, ctx, { getClient }) {
     runJob(job.id, async (onProgress) => {
       const client = await getClient();
       const options = {
-        all: body.all ?? false,
-        refresh: body.refresh ?? false,
-        output: body.output ?? ctx.paths.galaxy.defaultScrape(),
+        all: body.all !== false,
+        refresh: body.refresh !== false,
+        output: body.output ?? ctx.paths.galaxy.global(),
+        onProgress: (progress) => {
+          onProgress({
+            scanned: progress.scanned,
+            total: progress.total,
+            planetEntries: progress.planetEntries,
+            message: progress.message,
+          });
+        },
       };
-      if (body.galaxy) options.galaxy = body.galaxy;
+      if (body.galaxy != null) {
+        const g = Number(body.galaxy);
+        options.galaxy = Number.isFinite(g) ? { from: g, to: g } : body.galaxy;
+        options.all = false;
+      }
       if (body.systems) options.system = body.systems;
       if (body.coords) {
         const [g, s] = String(body.coords).split(":").map(Number);
         options.coords = { galaxy: g, system: s };
+        options.all = false;
       }
       const result = await scrapeGalaxy(options, client);
-      onProgress({ planetEntries: result.meta.planetEntries, message: "Scrape terminé" });
+      onProgress({
+        scanned: result.meta.systemsScannedThisRun,
+        total: result.meta.systemsInRun,
+        planetEntries: result.meta.planetEntries,
+        message: "Scan galaxie terminé",
+      });
       return result;
     }).catch(() => {});
     return { jobId: job.id };

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   Coins,
+  Crosshair,
   Diamond,
   Droplets,
   Radar,
@@ -14,7 +15,8 @@ import {
 import { client, watchJob, type Job } from "../api/client";
 import { ActiveFleetsPanel } from "../components/ActiveFleetsPanel";
 import { IconText, PageTitle } from "../components/IconText";
-import { formatAmount } from "../utils/format";
+import { cn, formatAmount } from "../utils/format";
+import { formatPlanetShipsDetail, formatPlanetShipsLabel } from "../utils/ships";
 
 function isPlanetRow(p: { label?: string; isMoon?: boolean }) {
   if (p.isMoon) return false;
@@ -22,7 +24,8 @@ function isPlanetRow(p: { label?: string; isMoon?: boolean }) {
 }
 
 function mineLevel(value?: number) {
-  return value != null && value > 0 ? value : value === 0 ? "0" : "—";
+  if (value == null) return "—";
+  return String(value);
 }
 
 function minesSum(p: { metalMine?: number; crystalMine?: number; deutMine?: number; minesTotal?: number }) {
@@ -155,7 +158,7 @@ export function EmpirePage() {
 
   const planetRows = snapshot?.planets?.filter(isPlanetRow) ?? [];
   const consolidateSources = planetRows.filter((p) => p.cp !== consolidateTargetCp);
-  const minesNeedScan = planetRows.length > 0 && planetRows.some((p) => p.metalMine == null);
+  const minesNeedScan = planetRows.some((p) => p.metalMine == null);
 
   return (
     <div className="page page--empire">
@@ -287,6 +290,8 @@ export function EmpirePage() {
                 <col className="col-mine" />
                 <col className="col-mine" />
                 <col className="col-mine-sum" />
+                <col className="col-ships" />
+                <col className="col-pt" />
                 <col className="col-pt" />
                 <col className="col-pt" />
               </colgroup>
@@ -301,8 +306,12 @@ export function EmpirePage() {
                   <th className="col-mine">Mine C</th>
                   <th className="col-mine">Mine D</th>
                   <th className="col-mine-sum">Σ mines</th>
+                  <th className="col-ships">Vaisseaux</th>
                   <th className="col-pt">
                     PT <Rocket size={12} className="inline-icon" aria-hidden />
+                  </th>
+                  <th className="col-pt" title="Vaisseaux de bataille">
+                    VB <Crosshair size={12} className="inline-icon" aria-hidden />
                   </th>
                   <th className="col-pt">
                     Sondes <Radar size={12} className="inline-icon" aria-hidden />
@@ -310,7 +319,10 @@ export function EmpirePage() {
                 </tr>
               </thead>
               <tbody>
-                {planetRows.map((p) => (
+                {planetRows.map((p) => {
+                  const shipsLabel = formatPlanetShipsLabel(p.ships);
+                  const shipsDetail = formatPlanetShipsDetail(p.ships);
+                  return (
                   <tr
                     key={p.cp ?? p.coords}
                     className={selectedCp === p.cp ? "selected" : ""}
@@ -325,10 +337,18 @@ export function EmpirePage() {
                     <td className="col-mine col-mine--crystal">{mineLevel(p.crystalMine)}</td>
                     <td className="col-mine col-mine--deut">{mineLevel(p.deutMine)}</td>
                     <td className="col-mine-sum">{mineLevel(minesSum(p))}</td>
+                    <td
+                      className={cn("col-ships", shipsDetail && "ships-cell--detail")}
+                      title={shipsDetail ?? undefined}
+                    >
+                      {shipsLabel ?? "—"}
+                    </td>
                     <td className="col-pt">{p.ships?.ship202?.toLocaleString("fr-FR") ?? "—"}</td>
+                    <td className="col-pt">{p.ships?.ship207?.toLocaleString("fr-FR") ?? "—"}</td>
                     <td className="col-pt">{p.ships?.ship210?.toLocaleString("fr-FR") ?? "—"}</td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
             </div>

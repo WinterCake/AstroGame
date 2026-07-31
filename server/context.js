@@ -14,9 +14,9 @@ import {
 import { saveAttacksStore } from "../src/attack-loot-send.js";
 import { applyCombatHiddenFilter } from "../src/combat-reports.js";
 import { groupEntriesByPlayer } from "../src/galaxy.js";
-import { getAllSpiedCoords, getSpiedTodayCoords, isReportToday } from "../src/spy-reports.js";
+import { getSpiedTodayCoords, isReportToday } from "../src/spy-reports.js";
 import { buildSpyEnrichmentContext, enrichGalaxyEntry, enrichSpyReport } from "../src/spy-enrichment.js";
-import { loadRawSpyArchiveReports, loadSpyReportsData, saveSpyReportsData } from "../src/spy-store.js";
+import { loadAllSpiedCoordsSet, loadSpyReportsData, saveSpyReportsData } from "../src/spy-store.js";
 import { normalizeCoordString } from "../src/spy-send.js";
 import { paths } from "../src/paths.js";
 
@@ -56,7 +56,7 @@ export function createServerContext() {
     const data = loadSpyReportsData();
     const spiedLogToday = getAttackedTodayCoords(loadJson(paths.spy.spiedLog()) ?? emptyAttacksStore());
     const spiedTodaySet = getSpiedTodayCoords(data.reports, spiedLogToday);
-    const allSpiedSet = getAllSpiedCoords(loadRawSpyArchiveReports());
+    const allSpiedSet = loadAllSpiedCoordsSet();
     return {
       spiedTodaySet,
       spiedTodayCount: spiedTodaySet.size,

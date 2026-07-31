@@ -1349,6 +1349,17 @@ code {
   width: 7%;
 }
 
+.data-table col.col-ships {
+  width: 14%;
+}
+
+.data-table--empire .col-ships {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 900px) {
   .split,
   .split--fill {

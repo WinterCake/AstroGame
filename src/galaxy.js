@@ -434,6 +434,16 @@ export async function scrapeGalaxy(rawOptions = {}, client) {
     lastTarget = target;
     persist(scanned === targets.length);
 
+    if (typeof options.onProgress === "function") {
+      options.onProgress({
+        scanned,
+        total: targets.length,
+        planetEntries: entries.length,
+        lastTarget: targetKey,
+        message: `Scan ${scanned}/${targets.length}`,
+      });
+    }
+
     if (scanned % 25 === 0 || scanned === targets.length) {
       log.info(`Progression ${scanned}/${targets.length} — ${entries.length} planètes joueurs au total`);
     }

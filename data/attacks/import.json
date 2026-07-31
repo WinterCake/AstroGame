@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "attack-loot",
-    "importedAt": "2026-07-10T13:48:39.968Z"
+    "importedAt": "2026-07-31T12:35:06.897Z"
   },
   "attacks": [
     {
@@ -3787,6 +3787,1751 @@
     {
       "coords": "6:5:11",
       "at": 1783691319968,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784140936711,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784140937782,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:193:7",
+      "at": 1784140938852,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784140939748,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784140940841,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:193:7",
+      "at": 1784140941821,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784140942821,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784140944034,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784140944982,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1784140945990,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:4",
+      "at": 1784140946990,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:277:7",
+      "at": 1784140948166,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:2",
+      "at": 1784140949201,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:9",
+      "at": 1784140950182,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:8",
+      "at": 1784140951139,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:13",
+      "at": 1784140952096,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1784140953400,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784140954416,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784140955666,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:336:15",
+      "at": 1784140956737,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1784140957818,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:12",
+      "at": 1784140958911,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1784140959938,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:365:13",
+      "at": 1784140961039,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:7",
+      "at": 1784140962211,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:335:15",
+      "at": 1784140963241,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784140964267,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:14",
+      "at": 1784140965322,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:13",
+      "at": 1784140966352,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:8",
+      "at": 1784140967393,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:8",
+      "at": 1784225261183,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1784225262282,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784225263422,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784225264496,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784225265440,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:301:8",
+      "at": 1784225266519,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:13",
+      "at": 1784225267514,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:190:3",
+      "at": 1784225268459,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784225269499,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1784225270442,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784225271404,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:365:13",
+      "at": 1784225272454,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:12",
+      "at": 1784225273418,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:174:15",
+      "at": 1784225274711,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784225275861,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1784225276996,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784225277954,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784225278948,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784225279945,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784225281106,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784225282271,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:6",
+      "at": 1784225283289,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:364:13",
+      "at": 1784225284403,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:7",
+      "at": 1784225285420,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:5",
+      "at": 1784225286549,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:171:6",
+      "at": 1784225287585,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:1",
+      "at": 1784225288609,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1784225289841,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:15",
+      "at": 1784225290893,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:26:3",
+      "at": 1784225292130,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784277574851,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784277575970,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:193:7",
+      "at": 1784277577170,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784277578297,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:8",
+      "at": 1784277579335,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784277580318,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784277581436,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:277:7",
+      "at": 1784277582519,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:193:7",
+      "at": 1784277583491,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1784277584659,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784277585949,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1784277586933,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784277588043,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784277589101,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1784277590185,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:193:7",
+      "at": 1784277591376,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:296:7",
+      "at": 1784277592628,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1784277593925,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:5",
+      "at": 1784277594951,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784277596016,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:12",
+      "at": 1784277597078,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:366:13",
+      "at": 1784277598128,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:381:8",
+      "at": 1784277599166,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1784277600725,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:7",
+      "at": 1784277602842,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:246:3",
+      "at": 1784277606702,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:283:7",
+      "at": 1784277607845,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:10",
+      "at": 1784277608970,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:6",
+      "at": 1784277610081,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:364:9",
+      "at": 1784277611116,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1784291055658,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:339:15",
+      "at": 1784291056716,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:170:15",
+      "at": 1784291057616,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784291058698,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:145:10",
+      "at": 1784291059800,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:171:15",
+      "at": 1784291060812,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:245:4",
+      "at": 1784291061708,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:174:15",
+      "at": 1784291062784,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:74:9",
+      "at": 1784291063990,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:15",
+      "at": 1784291064938,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:364:13",
+      "at": 1784291066149,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:230:10",
+      "at": 1784291067178,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:338:14",
+      "at": 1784291068151,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:338:15",
+      "at": 1784291069091,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:13",
+      "at": 1784291070173,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:5",
+      "at": 1784291071209,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:336:14",
+      "at": 1784291072163,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:336:13",
+      "at": 1784291073418,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:338:13",
+      "at": 1784291074432,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:244:4",
+      "at": 1784291075433,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:13",
+      "at": 1784291076416,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:4",
+      "at": 1784291077413,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:6",
+      "at": 1784291078604,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:336:15",
+      "at": 1784291079659,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:27:2",
+      "at": 1784291080677,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:335:15",
+      "at": 1784291081707,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:231:9",
+      "at": 1784291082856,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:9",
+      "at": 1784291084018,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1784291085164,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:380:15",
+      "at": 1784291086264,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:193:7",
+      "at": 1784363854749,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784363855916,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784363857009,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784363858298,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:301:8",
+      "at": 1784363859475,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784363860797,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784363861800,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:277:7",
+      "at": 1784363862938,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:12",
+      "at": 1784363863978,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784363865021,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1784363866157,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:3:10",
+      "at": 1784363867150,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1784363868171,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784363869210,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:8",
+      "at": 1784363870271,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:4",
+      "at": 1784363871403,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:1",
+      "at": 1784363872495,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:2",
+      "at": 1784363873464,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:366:13",
+      "at": 1784363874592,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1784363875592,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1784363876622,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784363877700,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:1",
+      "at": 1784363878704,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:381:8",
+      "at": 1784363879715,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:380:15",
+      "at": 1784363880741,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784455711886,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784455712936,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784455713843,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784455715028,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784455716102,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:193:7",
+      "at": 1784455717718,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:283:7",
+      "at": 1784455718969,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:10",
+      "at": 1784455719935,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:4",
+      "at": 1784455720922,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:6",
+      "at": 1784455722019,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:125:5",
+      "at": 1784455723334,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784455724277,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1784455725567,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:5",
+      "at": 1784455726859,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1784455728031,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1784455729016,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:74:9",
+      "at": 1784455730795,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784455731844,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784455733270,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:244:4",
+      "at": 1784455734633,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:9",
+      "at": 1784455735648,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:230:10",
+      "at": 1784455736746,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784531359341,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784531360245,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784531361304,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1784531362383,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784531363460,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784531364384,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784531365495,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784531366398,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784531367598,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784531368787,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:175:9",
+      "at": 1784531369734,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1784531370804,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:301:8",
+      "at": 1784531371951,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784531372924,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:190:3",
+      "at": 1784531374039,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:179:4",
+      "at": 1784531375088,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:125:5",
+      "at": 1784531376190,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:245:4",
+      "at": 1784531377366,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1784531378604,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784531379575,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:5",
+      "at": 1784531380630,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:6",
+      "at": 1784531381742,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:381:8",
+      "at": 1784531382841,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:9",
+      "at": 1784531383837,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:4",
+      "at": 1784531384939,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:244:4",
+      "at": 1784531385956,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1784531386964,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:336:15",
+      "at": 1784531388043,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1784531389095,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:4",
+      "at": 1784531390128,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784621501872,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784621503028,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1784621504252,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784621505328,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784621506274,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784621507228,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:277:7",
+      "at": 1784621508412,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784621509458,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:380:15",
+      "at": 1784621510406,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:176:5",
+      "at": 1784621511516,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:193:7",
+      "at": 1784621512541,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:193:7",
+      "at": 1784621513768,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1784621514722,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:301:8",
+      "at": 1784621515956,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:179:4",
+      "at": 1784621516984,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:6",
+      "at": 1784621518032,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:301:8",
+      "at": 1784621519411,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:246:3",
+      "at": 1784621520392,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:5",
+      "at": 1784621521400,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1784621522709,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:381:8",
+      "at": 1784621523718,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:245:4",
+      "at": 1784621524892,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1784621525989,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784621527009,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:244:4",
+      "at": 1784621528164,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1784621529251,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:175:9",
+      "at": 1784621530351,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:10",
+      "at": 1784621531440,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784621532601,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:74:9",
+      "at": 1784621533932,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784632957889,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:3:10",
+      "at": 1784632958815,
+      "source": "weak-player"
+    },
+    {
+      "coords": "2:364:9",
+      "at": 1784632959977,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:4:10",
+      "at": 1784632960747,
+      "source": "weak-player"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1784632961808,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:170:15",
+      "at": 1784632962996,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:13",
+      "at": 1784632963986,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:15",
+      "at": 1784632964927,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:230:7",
+      "at": 1784632965978,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:337:14",
+      "at": 1784632967012,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:6:10",
+      "at": 1784632967794,
+      "source": "weak-player"
+    },
+    {
+      "coords": "5:171:15",
+      "at": 1784632968753,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:3:11",
+      "at": 1784632969568,
+      "source": "weak-player"
+    },
+    {
+      "coords": "5:163:11",
+      "at": 1784632970661,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:145:10",
+      "at": 1784632971795,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:174:15",
+      "at": 1784632972751,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:190:3",
+      "at": 1784632973722,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:5:11",
+      "at": 1784632974541,
+      "source": "weak-player"
+    },
+    {
+      "coords": "6:5:10",
+      "at": 1784632975350,
+      "source": "weak-player"
+    },
+    {
+      "coords": "2:190:8",
+      "at": 1784632976421,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:71:8",
+      "at": 1784632977576,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1784632978542,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:1",
+      "at": 1784632979543,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:9",
+      "at": 1784632980545,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:1",
+      "at": 1784632981548,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:58:9",
+      "at": 1784632982590,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1784632983599,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1784632984648,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:171:12",
+      "at": 1784632985670,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:13",
+      "at": 1784632986794,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:171:6",
+      "at": 1784705456262,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:12",
+      "at": 1784705457308,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:250:6",
+      "at": 1784705458225,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:251:15",
+      "at": 1784705459283,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:252:6",
+      "at": 1784705460356,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1784705461367,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:301:8",
+      "at": 1784705462292,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:176:5",
+      "at": 1784705463201,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:144:6",
+      "at": 1784705464123,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:380:15",
+      "at": 1784705465069,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:105:12",
+      "at": 1784705466241,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:7",
+      "at": 1784705467217,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:193:7",
+      "at": 1784705468179,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:363:13",
+      "at": 1784705469119,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1784705470182,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:386:5",
+      "at": 1784705471139,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:101:4",
+      "at": 1784705472084,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:301:8",
+      "at": 1784705473219,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1784705474267,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:106:1",
+      "at": 1784705475242,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1784705476428,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:179:4",
+      "at": 1784705477421,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:56:8",
+      "at": 1784705478423,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:102:1",
+      "at": 1784705479423,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1784705480435,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1784705481494,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:188:8",
+      "at": 1784705482495,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:175:9",
+      "at": 1784705483713,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:365:13",
+      "at": 1784705484730,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:193:7",
+      "at": 1784705485956,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1784707156388,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:3:10",
+      "at": 1784707157430,
+      "source": "weak-player"
+    },
+    {
+      "coords": "2:366:13",
+      "at": 1784707158515,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:27:2",
+      "at": 1784707159599,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:4:10",
+      "at": 1784707160461,
+      "source": "weak-player"
+    },
+    {
+      "coords": "5:26:1",
+      "at": 1784707161417,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:125:5",
+      "at": 1784707162449,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:6",
+      "at": 1784707163725,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:6:10",
+      "at": 1784707164529,
+      "source": "weak-player"
+    },
+    {
+      "coords": "6:3:11",
+      "at": 1784707165510,
+      "source": "weak-player"
+    },
+    {
+      "coords": "5:246:3",
+      "at": 1784707166572,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:174:15",
+      "at": 1784707167605,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:193:7",
+      "at": 1784707168837,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:101:8",
+      "at": 1784707169879,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:245:4",
+      "at": 1784707170942,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:247:6",
+      "at": 1784707172117,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:364:9",
+      "at": 1784707173368,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:249:9",
+      "at": 1784707174605,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "4:145:10",
+      "at": 1784707175918,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:243:5",
+      "at": 1784707177126,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:296:7",
+      "at": 1784707178543,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "6:5:11",
+      "at": 1784707179588,
+      "source": "weak-player"
+    },
+    {
+      "coords": "6:5:10",
+      "at": 1784707180541,
+      "source": "weak-player"
+    },
+    {
+      "coords": "5:243:4",
+      "at": 1784707181681,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:364:13",
+      "at": 1784707182852,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:248:5",
+      "at": 1784707184056,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "3:44:8",
+      "at": 1784707185659,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:282:7",
+      "at": 1784707186917,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "5:26:3",
+      "at": 1784707188400,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:190:3",
+      "at": 1784707189718,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:193:7",
+      "at": 1785501213267,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:367:15",
+      "at": 1785501214317,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:330:8",
+      "at": 1785501215195,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:339:15",
+      "at": 1785501216160,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:334:7",
+      "at": 1785501217154,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:101:5",
+      "at": 1785501218353,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:380:15",
+      "at": 1785501219268,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:269:7",
+      "at": 1785501220183,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:53:9",
+      "at": 1785501221147,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:227:9",
+      "at": 1785501222086,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:381:8",
+      "at": 1785501223110,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:52:9",
+      "at": 1785501224354,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:381:8",
+      "at": 1785501225621,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:54:9",
+      "at": 1785501226882,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:333:8",
+      "at": 1785501284743,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:380:15",
+      "at": 1785501285738,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:8",
+      "at": 1785501286791,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:198:1",
+      "at": 1785501287934,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:196:4",
+      "at": 1785501288995,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:333:12",
+      "at": 1785501290092,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:332:14",
+      "at": 1785501291238,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:234:6",
+      "at": 1785501292362,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:234:9",
+      "at": 1785501293474,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:234:8",
+      "at": 1785501294598,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:190:7",
+      "at": 1785501295631,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:2",
+      "at": 1785501296641,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:332:15",
+      "at": 1785501297826,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "2:195:1",
+      "at": 1785501299148,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:258:15",
+      "at": 1785501302848,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:171:6",
+      "at": 1785501304245,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:190:3",
+      "at": 1785501305292,
+      "source": "attack-loot"
+    },
+    {
+      "coords": "1:56:4",
+      "at": 1785501306897,
       "source": "attack-loot"
     }
   ]
